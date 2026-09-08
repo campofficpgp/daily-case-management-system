@@ -153,6 +153,19 @@
     color:var(--navy);margin-bottom:12px;font-weight:700;
   }
 
+  /* ---------- Help / Guide panel ---------- */
+  .help-intro{font-size:13.5px;color:var(--text);line-height:1.6;margin:0 0 4px;}
+  .help-steps{margin:0;padding-left:20px;}
+  .help-steps li{margin-bottom:7px;font-size:13px;line-height:1.55;color:var(--text);}
+  .help-steps li:last-child{margin-bottom:0;}
+  details.faq-item{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;background:#fff;}
+  details.faq-item summary{padding:11px 14px;cursor:pointer;font-weight:600;font-size:13.2px;color:var(--navy-dark);list-style:none;position:relative;padding-right:30px;}
+  details.faq-item summary::-webkit-details-marker{display:none;}
+  details.faq-item summary::after{content:"+";position:absolute;right:14px;top:9px;font-size:17px;color:var(--muted);}
+  details.faq-item[open] summary::after{content:"\2212";}
+  details.faq-item summary:hover{background:var(--navy-tint);}
+  details.faq-item .faq-answer{padding:0 14px 13px;font-size:13px;line-height:1.6;color:var(--text);}
+
   .grid{display:grid;gap:12px;}
   .grid.cols-4{grid-template-columns:repeat(4,1fr);}
   .grid.cols-3{grid-template-columns:repeat(3,1fr);}
@@ -289,6 +302,44 @@
   .toast.show{opacity:1;transform:translateY(0);}
   footer.appfoot{text-align:center;color:var(--muted);font-size:11.5px;padding:18px;border-top:1px solid var(--border);}
 
+  /* ---------- Team Chat ---------- */
+  #chatToggleBtn{
+    position:fixed;right:20px;bottom:84px;z-index:996;
+    width:52px;height:52px;border-radius:50%;background:var(--navy);color:#fff;
+    border:none;box-shadow:0 4px 14px rgba(0,0,0,.28);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:22px;padding:0;
+  }
+  #chatToggleBtn:hover{background:var(--navy-dark);}
+  #chatToggleBtn .chat-badge{
+    position:absolute;top:-3px;right:-3px;background:var(--danger);color:#fff;
+    border-radius:999px;min-width:19px;height:19px;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;padding:0 4px;
+  }
+  #chatPanel{
+    position:fixed;top:0;right:-340px;width:320px;height:100%;background:#fff;
+    border-left:1px solid var(--border);box-shadow:-4px 0 18px rgba(0,0,0,.15);
+    z-index:1000;display:flex;flex-direction:column;transition:right .25s ease;
+  }
+  #chatPanel.open{right:0;}
+  .chat-head{background:var(--navy);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;flex:0 0 auto;}
+  .chat-head h3{color:#fff;font-size:14px;margin:0;text-transform:none;letter-spacing:0;font-family:inherit;}
+  .chat-head .chat-online{font-size:11px;color:#CFE0EC;margin-top:3px;}
+  .chat-head button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:14px;line-height:1;flex:0 0 auto;}
+  .chat-head button:hover{background:rgba(255,255,255,.28);}
+  .chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--bg);}
+  .chat-msg{max-width:88%;}
+  .chat-msg .chat-msg-meta{font-size:10.5px;color:var(--muted);margin-bottom:2px;}
+  .chat-msg .chat-msg-bubble{background:#fff;border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-size:12.8px;line-height:1.45;color:var(--text);word-wrap:break-word;white-space:pre-wrap;}
+  .chat-msg.mine{align-self:flex-end;}
+  .chat-msg.mine .chat-msg-bubble{background:var(--navy-tint);border-color:#C9DCEA;}
+  .chat-msg.mine .chat-msg-meta{text-align:right;}
+  .chat-empty{color:var(--muted);font-size:12.5px;text-align:center;margin-top:30px;}
+  .chat-input-bar{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);background:#fff;flex:0 0 auto;}
+  .chat-input-bar textarea{flex:1;resize:none;height:40px;padding:8px 10px;font-size:13px;font-family:inherit;}
+  .chat-input-bar button{border:none;background:var(--navy);color:#fff;border-radius:var(--radius);padding:0 14px;cursor:pointer;font-weight:600;font-family:inherit;}
+  .chat-input-bar button:hover{background:var(--navy-dark);}
+  @media(max-width:640px){ #chatPanel{width:100%;right:-100%;} }
+
   /* ---------- Auth screens ---------- */
   .fullscreen-overlay{
     position:fixed;inset:0;background:linear-gradient(160deg,var(--navy-dark),var(--navy));
@@ -325,7 +376,7 @@
   .detail-section-title{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--navy);font-weight:700;margin:18px 0 8px;}
 
   @media print{
-    nav.sidenav,.search-bar,.btnbar,.topbar .office-field,.row-actions,.card.entry-form,footer.appfoot,.auth-screen,.userbar{display:none !important;}
+    nav.sidenav,.search-bar,.btnbar,.topbar .office-field,.row-actions,.card.entry-form,footer.appfoot,.auth-screen,.userbar,#chatToggleBtn,#chatPanel{display:none !important;}
     .shell{display:block;}
     main{padding:0;max-width:none;}
     body{background:#fff;}
@@ -453,6 +504,8 @@
     <button id="btnBackup"><span class="dot"></span> <span data-i18n="btn_backup">Backup (save file)</span></button>
     <button id="btnRestore"><span class="dot"></span> <span data-i18n="btn_restore">Restore from file</span></button>
     <input type="file" id="restoreFile" accept="application/json" style="display:none">
+    <div class="navnote" data-i18n="nav_helpSection">Help</div>
+    <button class="tab-btn" data-tab="help"><span class="dot"></span> <span data-i18n="nav_help">Help / Guide</span></button>
   </nav>
 
   <main>
@@ -515,7 +568,10 @@
         <div class="grid cols-4" style="margin-top:12px;">
           <div class="field"><label data-i18n="lbl_diaryNo">Diary No</label><input type="text" id="cs_diaryNo"></div>
           <div class="field"><label data-i18n="lbl_filingDate">Filing Date</label><input type="date" id="cs_filingDate"></div>
-          <div class="field"><label data-i18n="lbl_benchCourt">Bench/Court</label><input type="text" id="cs_benchCourt" placeholder="e.g. Bench-II"></div>
+          <div class="field"><label data-i18n="lbl_benchCourt">Bench/Court</label>
+            <select id="cs_benchCourt"></select>
+            <input type="text" id="cs_benchCourt_new" placeholder="e.g. Bench-II" style="display:none;margin-top:6px;">
+          </div>
           <div class="field"><label data-i18n="lbl_assignedEmployee">Assigned Employee</label><select id="cs_assignedEmployee"></select></div>
         </div>
         <div class="grid cols-4" style="margin-top:12px;">
@@ -588,7 +644,10 @@
         <div class="grid cols-4">
           <div class="field" style="grid-column:span 2;"><label data-i18n="lbl_case">Case</label><select id="h_caseId"></select></div>
           <div class="field"><label data-i18n="lbl_hearingDate">Hearing Date</label><input type="date" id="h_hearingDate"></div>
-          <div class="field"><label data-i18n="lbl_benchCourt">Bench/Court</label><input type="text" id="h_benchCourt"></div>
+          <div class="field"><label data-i18n="lbl_benchCourt">Bench/Court</label>
+            <select id="h_benchCourt"></select>
+            <input type="text" id="h_benchCourt_new" placeholder="e.g. Bench-II" style="display:none;margin-top:6px;">
+          </div>
         </div>
         <div class="grid cols-4" style="margin-top:12px;">
           <div class="field"><label data-i18n="lbl_employee">Employee</label><select id="h_employee"></select></div>
@@ -777,7 +836,10 @@
           <div class="grid cols-4">
             <div class="field"><label data-i18n="disp_diaryNo">Diary No</label><input type="text" id="di_diaryNo"></div>
             <div class="field"><label data-i18n="disp_receivedDate">Received Date</label><input type="date" id="di_receivedDate"></div>
-            <div class="field" style="grid-column:span 2;"><label data-i18n="disp_receivedFrom">Received From</label><input type="text" id="di_receivedFrom" placeholder="e.g. District Courts, Lahore"></div>
+            <div class="field" style="grid-column:span 2;"><label data-i18n="disp_receivedFrom">Received From</label>
+              <select id="di_receivedFrom"></select>
+              <input type="text" id="di_receivedFrom_new" placeholder="e.g. District Courts, Lahore" style="display:none;margin-top:6px;">
+            </div>
           </div>
           <div class="grid cols-4" style="margin-top:12px;">
             <div class="field"><label data-i18n="disp_theirRefNo">Their Reference No</label><input type="text" id="di_theirRefNo"></div>
@@ -859,7 +921,10 @@
           <div class="grid cols-4">
             <div class="field"><label data-i18n="disp_dispatchNo">Dispatch No</label><input type="text" id="do_dispatchNo"></div>
             <div class="field"><label data-i18n="disp_dispatchDate">Dispatch Date</label><input type="date" id="do_dispatchDate"></div>
-            <div class="field" style="grid-column:span 2;"><label data-i18n="disp_sentTo">Sent To</label><input type="text" id="do_sentTo" placeholder="e.g. Registrar, Supreme Court of Pakistan"></div>
+            <div class="field" style="grid-column:span 2;"><label data-i18n="disp_sentTo">Sent To</label>
+              <select id="do_sentTo"></select>
+              <input type="text" id="do_sentTo_new" placeholder="e.g. Registrar, Supreme Court of Pakistan" style="display:none;margin-top:6px;">
+            </div>
           </div>
           <div class="grid cols-4" style="margin-top:12px;">
             <div class="field"><label data-i18n="disp_ourRefNo">Our Reference No</label><input type="text" id="do_ourRefNo"></div>
@@ -1131,11 +1196,175 @@
       <div class="auth-warn" style="margin-top:18px;" data-i18n="usr_dataWarn">Data is stored online in this system's shared Firebase database. Access is controlled by each person's role (Administrator vs Guest) — enforced both here and, more importantly, by the database's own security rules.</div>
     </section>
 
+    <!-- ================= HELP / GUIDE ================= -->
+    <section class="panel" id="panel-help">
+      <div class="panel-head">
+        <div>
+          <h2 data-i18n="help_title">Help &amp; User Guide</h2>
+          <p data-i18n="help_introText">This is one shared system for the whole office, divided into three branches — Admin Branch, Record Branch, and Accounts Branch. Everything you enter is saved online immediately and every other signed-in user sees the same information. An Administrator has full access everywhere; a Guest's access depends on which branch(es) their Administrator has granted them under "Users &amp; Access" — a section without permission still shows for viewing and printing, its Add/Edit/Delete controls are just disabled.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_dash_title">Dashboard</h3>
+        <p class="help-intro" data-i18n="help_dash_intro">A live overview of the whole system — everyone sees it on signing in.</p>
+        <ol class="help-steps">
+          <li data-i18n="help_dash_s1">The stat cards at the top summarise cases, hearings, and pending items across all branches.</li>
+          <li data-i18n="help_dash_s2">"Upcoming hearings" lists everything due in the next 7 days, so nothing is missed.</li>
+          <li data-i18n="help_dash_s3">"Recently entered hearings" shows the latest proceedings added by anyone, useful as a quick daily check.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_cases_title">Cases — Main Register (Record Branch)</h3>
+        <p class="help-intro" data-i18n="help_cases_intro">Register every case once here. Hearings and Results are entered separately against it, so the complete history builds up over time.</p>
+        <ol class="help-steps">
+          <li data-i18n="help_cases_s1">Fill in Case No, Case Type, Case Title, Diary No, Filing Date, Bench/Court, and Assigned Employee, then press "Save case".</li>
+          <li data-i18n="help_cases_s2">Use "Search &amp; filter cases" to quickly find a case by number, type, status, or assigned employee.</li>
+          <li data-i18n="help_cases_s3">The table's "Next Hearing" and "Latest Result" columns are filled in automatically from the Hearings and Results sections.</li>
+          <li data-i18n="help_cases_s4">"Export visible rows (CSV)" saves exactly the rows currently shown by your filters.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_hear_title">Hearings — Proceedings History (Record Branch)</h3>
+        <p class="help-intro" data-i18n="help_hear_intro">Every time a case is heard, add one entry here against that case — never overwrite an old one.</p>
+        <ol class="help-steps">
+          <li data-i18n="help_hear_s1">Pick the case first, then enter the hearing date, bench/court, and the proceedings/order for that date.</li>
+          <li data-i18n="help_hear_s2">Set the "Next Hearing Date" here too — this is what feeds the Dashboard's upcoming-hearings list.</li>
+          <li data-i18n="help_hear_s3">All past hearings for a case stay visible below in date order, so the full proceedings history is always at hand.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_res_title">Results — Final &amp; Interim Orders (Record Branch)</h3>
+        <p class="help-intro" data-i18n="help_res_intro">Record the outcome of a case here — a final judgment or an interim order.</p>
+        <ol class="help-steps">
+          <li data-i18n="help_res_s1">Pick the case, the result date, and describe the order or judgment in the remarks.</li>
+          <li data-i18n="help_res_s2">Once a final result is recorded, update the case's Status (in the Cases section) to Decided/Disposed so it stops appearing as pending.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_emp_title">Employees (Admin Branch)</h3>
+        <p class="help-intro" data-i18n="help_emp_intro">This is the master staff list, used to assign cases and hearings to the right person everywhere else in the system.</p>
+        <ol class="help-steps">
+          <li data-i18n="help_emp_s1">Add every staff member here first — their name then appears in the "Assigned Employee" dropdown across Cases and other sections.</li>
+          <li data-i18n="help_emp_s2">Keep designations up to date, since they also appear on printed reports.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_disp_title">Dispatch — Dak In / Dak Out (Record Branch)</h3>
+        <p class="help-intro" data-i18n="help_disp_intro">A complete daily record of incoming and outgoing correspondence (Dak), separate from the case register.</p>
+        <ol class="help-steps">
+          <li data-i18n="help_disp_s1">Log every letter or file received ("Dak In") and every one sent out ("Dak Out"), with date, subject, and reference.</li>
+          <li data-i18n="help_disp_s2">Use Search &amp; filter to trace a specific letter later by date or subject.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_tok_title">Token Register (Accounts Branch)</h3>
+        <p class="help-intro" data-i18n="help_tok_intro">Track every bill sent to the Accounts Office for pre-audit or payment, from the day it's submitted until the cheque is received.</p>
+        <ol class="help-steps">
+          <li data-i18n="help_tok_s1">Record the bill details and its token number as soon as it's submitted.</li>
+          <li data-i18n="help_tok_s2">Update its status (e.g. under audit, objection raised, cheque received) as it moves along, so its progress is always visible at a glance.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_rep_title">Reports</h3>
+        <p class="help-intro" data-i18n="help_rep_intro">A combined case-load summary for any date range you choose.</p>
+        <ol class="help-steps">
+          <li data-i18n="help_rep_s1">Pick a date range, then view the summary on screen.</li>
+          <li data-i18n="help_rep_s2">Use "Export report (Excel)" or "Print report" to share or file a copy.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_usr_title">Users &amp; Access</h3>
+        <p class="help-intro" data-i18n="help_usr_intro">This controls who can add, edit, or delete data, and in which branch.</p>
+        <ol class="help-steps">
+          <li data-i18n="help_usr_s1">New accounts sign up from the sign-in screen and start as Guest (view-only everywhere).</li>
+          <li data-i18n="help_usr_s2">An Administrator ticks Admin Branch, Record Branch, and/or Accounts Branch for each Guest, matching exactly what that person needs to work on.</li>
+          <li data-i18n="help_usr_s3">A Guest can always view and print every section, even one they have no branch permission for — only the Add/Edit/Delete controls stay disabled there.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_data_title">Backup, Restore &amp; Access</h3>
+        <p class="help-intro" data-i18n="help_data_intro">Data is saved online immediately as everyone works, shared live across all signed-in users.</p>
+        <ol class="help-steps">
+          <li data-i18n="help_data_s1">Use "Backup (save file)" occasionally to keep an extra offline copy on this computer.</li>
+          <li data-i18n="help_data_s2">"Restore from file" replaces all shared data with a backup file — Administrators only, since it affects everyone.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="help_faqTitle">Frequently Asked Questions</h3>
+        <details class="faq-item">
+          <summary data-i18n="help_faq1_q">I signed up but I can't add, edit, or delete anything — why?</summary>
+          <div class="faq-answer" data-i18n="help_faq1_a">New accounts start as Guest (view-only) for safety. An Administrator needs to grant you the relevant branch permission (Admin/Record/Accounts) under Users &amp; Access before you can add, edit, or delete in that branch.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq2_q">Why does this system have "branches" when the other Camp Office systems don't?</summary>
+          <div class="faq-answer" data-i18n="help_faq2_a">This system covers three different kinds of office work at once — Admin, Record, and Accounts — so permissions are split per branch instead of one simple Guest/Administrator switch, letting each Guest be granted exactly the access their actual job needs.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq3_q">Which sections does each branch cover?</summary>
+          <div class="faq-answer" data-i18n="help_faq3_a">Admin Branch → Employees. Record Branch → Cases, Hearings, Results, Dispatch. Accounts Branch → Token Register. Reports and Backup/Restore are visible to everyone but Restore is Administrator-only.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq4_q">How do I switch between English and Urdu?</summary>
+          <div class="faq-answer" data-i18n="help_faq4_a">Use the language selector at the top of the screen. It changes menus, labels, and buttons instantly for everyone's own screen — it doesn't change the data you've entered.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq5_q">Where is my data stored — is it safe if this computer breaks?</summary>
+          <div class="faq-answer" data-i18n="help_faq5_a">Everything is stored online in this system's shared database, not on any one computer. If this computer is lost or damaged, the data is completely safe — just sign in again from any other computer.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq6_q">Can more than one person use the system at the same time?</summary>
+          <div class="faq-answer" data-i18n="help_faq6_a">Yes. Everyone signed in sees the same live data, and changes made by one person appear for everyone else within a moment.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq7_q">How does the Dashboard know which hearings are "upcoming"?</summary>
+          <div class="faq-answer" data-i18n="help_faq7_a">It reads the "Next Hearing Date" you set the last time you entered a hearing for each case, and lists anything falling in the next 7 days.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq8_q">A case has been decided — what should I update?</summary>
+          <div class="faq-answer" data-i18n="help_faq8_a">Add the outcome in Results, then go back to that case in the Cases section and change its Status to Decided or Disposed so it drops off the pending lists.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq9_q">How do I print a report or export it to Excel?</summary>
+          <div class="faq-answer" data-i18n="help_faq9_a">Open Reports, choose your date range, then use "Print report" or "Export report (Excel)" to share or file a copy.</div>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="help_faq10_q">Can I get case, hearing, or dispatch data into Excel?</summary>
+          <div class="faq-answer" data-i18n="help_faq10_a">Yes — most tables have an "Export visible rows (CSV)" or "Export (Excel)" button that saves exactly the rows currently shown by your filters, ready to open in Excel.</div>
+        </details>
+      </div>
+    </section>
 
   </main>
 </div>
 
 <footer class="appfoot" data-i18n="app_footer">Daily Case Management System — data is stored online and shared across all signed-in users.</footer>
+
+<button id="chatToggleBtn" title="Team Chat">💬<span class="chat-badge" id="chatBadge" style="display:none;">0</span></button>
+<div id="chatPanel">
+  <div class="chat-head">
+    <div>
+      <h3 data-i18n="chat_title">Team Chat</h3>
+      <div class="chat-online" id="chatOnlineLabel">0 online</div>
+    </div>
+    <button id="chatCloseBtn">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-bar">
+    <textarea id="chatInput" data-i18n-placeholder="chat_typeMessage" placeholder="Type a message…"></textarea>
+    <button id="chatSendBtn" data-i18n="chat_send">Send</button>
+  </div>
+</div>
 </div>
 <div class="pb-modal-overlay" id="pbModalOverlay">
   <div class="pb-modal">
@@ -1165,17 +1394,17 @@
    project's config below in place of these placeholder values.
    ========================================================================= */
 var firebaseConfig = {
-  apiKey: "AIzaSyCZI8qavoCc65dBQNs7e5r6Yei9jhQlKFg",
-  authDomain: "daily-case-management-system.firebaseapp.com",
-  projectId: "daily-case-management-system",
-  storageBucket: "daily-case-management-system.firebasestorage.app",
-  messagingSenderId: "307536619826",
-  appId: "1:307536619826:web:aef3ecba8fcfab783a0f2b"
+  apiKey: "AIzaSyCWl8dktUjAGF_JLMuZun2w3g_xnX3WBkU",
+  authDomain: "camp-office-project.firebaseapp.com",
+  projectId: "camp-office-project",
+  storageBucket: "camp-office-project.firebasestorage.app",
+  messagingSenderId: "246340921152",
+  appId: "1:246340921152:web:84b0a687a00a95523f23ca5"
 };
 firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
-var SHARED_DOC_REF = db.collection("appData").doc("shared");
+var SHARED_DOC_REF = db.collection("appData_dcms").doc("shared");
 var SUPPRESS_NEXT_SNAPSHOT_RENDER = false;
 
 /* ---------------- small utilities ---------------- */
@@ -1184,6 +1413,50 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ re
 function todayStr(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function toast(msg){ var t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._h); toast._h=setTimeout(function(){t.classList.remove("show");},2200); }
 function uniqueSorted(arr){ return Array.from(new Set(arr.filter(function(v){return v!==undefined&&v!==null&&v!=="";}))).sort(function(a,b){return String(a).localeCompare(String(b),undefined,{numeric:true});}); }
+
+/* ---------------- select-or-add helper (reused pattern) ---------------- */
+function populateSelectOrAdd(selectId, values, placeholderLabel){
+  var sel = document.getElementById(selectId);
+  if(!sel) return;
+  var keep = sel.value;
+  var unique = uniqueSorted(values);
+  sel.innerHTML = "<option value=''>"+esc(placeholderLabel)+"</option>"+
+    unique.map(function(v){ return "<option value='"+esc(v)+"'>"+esc(v)+"</option>"; }).join("")+
+    "<option value='__new__'>"+esc(t("opt_addNewValue"))+"</option>";
+  if(keep && (unique.includes(keep) || keep==="__new__")) sel.value = keep;
+}
+function wireSelectOrAdd(selectId, newInputId){
+  var sel = document.getElementById(selectId);
+  var newInput = document.getElementById(newInputId);
+  sel.addEventListener("change", function(){
+    if(sel.value === "__new__"){ newInput.style.display="block"; newInput.focus(); }
+    else{ newInput.style.display="none"; newInput.value=""; }
+  });
+}
+function getSelectOrAddValue(selectId, newInputId){
+  var sel = document.getElementById(selectId);
+  if(sel.value === "__new__") return document.getElementById(newInputId).value.trim();
+  return sel.value;
+}
+function resetSelectOrAdd(selectId, newInputId){
+  document.getElementById(selectId).value = "";
+  var ni = document.getElementById(newInputId); ni.value=""; ni.style.display="none";
+}
+function setSelectOrAddValue(selectId, newInputId, value){
+  var sel = document.getElementById(selectId);
+  var hasOption = Array.from(sel.options).some(function(o){ return o.value===value; });
+  var ni = document.getElementById(newInputId);
+  if(value && hasOption){ sel.value=value; ni.style.display="none"; ni.value=""; }
+  else if(value){ sel.value="__new__"; ni.style.display="block"; ni.value=value; }
+  else { sel.value=""; ni.style.display="none"; ni.value=""; }
+}
+/* Bench/Court is entered both in Cases and Hearings, so both forms share
+   the same suggestion list drawn from whichever of the two has been used. */
+function benchCourtMasterValues(){
+  return STATE.cases.map(function(c){ return c.benchCourt; })
+    .concat(STATE.hearings.map(function(h){ return h.benchCourt; }));
+}
+
 function nowIso(){ return new Date().toISOString(); }
 function formatDateTime(iso){
   if(!iso) return "";
@@ -1386,7 +1659,8 @@ function resetCaseForm(){
   document.getElementById("cs_caseTitle").value = "";
   document.getElementById("cs_diaryNo").value = "";
   document.getElementById("cs_filingDate").value = "";
-  document.getElementById("cs_benchCourt").value = "";
+  populateSelectOrAdd("cs_benchCourt", benchCourtMasterValues(), t("opt_selectBenchCourt"));
+  resetSelectOrAdd("cs_benchCourt","cs_benchCourt_new");
   document.getElementById("cs_assignedEmployee").value = "";
   document.getElementById("cs_status").value = "Pending";
   document.getElementById("cs_remarks").value = "";
@@ -1404,7 +1678,8 @@ function editCase(id){
   document.getElementById("cs_caseTitle").value = c.caseTitle||"";
   document.getElementById("cs_diaryNo").value = c.diaryNo||"";
   document.getElementById("cs_filingDate").value = c.filingDate||"";
-  document.getElementById("cs_benchCourt").value = c.benchCourt||"";
+  populateSelectOrAdd("cs_benchCourt", benchCourtMasterValues(), t("opt_selectBenchCourt"));
+  setSelectOrAddValue("cs_benchCourt","cs_benchCourt_new", c.benchCourt||"");
   document.getElementById("cs_assignedEmployee").value = c.assignedEmployee||"";
   document.getElementById("cs_status").value = c.status||"Pending";
   document.getElementById("cs_remarks").value = c.remarks||"";
@@ -1443,7 +1718,7 @@ document.getElementById("cs_saveBtn").addEventListener("click", function(){
     caseTitle: document.getElementById("cs_caseTitle").value.trim(),
     diaryNo: document.getElementById("cs_diaryNo").value.trim(),
     filingDate: document.getElementById("cs_filingDate").value,
-    benchCourt: document.getElementById("cs_benchCourt").value.trim(),
+    benchCourt: getSelectOrAddValue("cs_benchCourt","cs_benchCourt_new"),
     assignedEmployee: document.getElementById("cs_assignedEmployee").value,
     status: document.getElementById("cs_status").value,
     remarks: document.getElementById("cs_remarks").value.trim(),
@@ -1513,6 +1788,7 @@ document.getElementById("cs_exportBtn").addEventListener("click", function(){
 
 function renderCases(){
   populateCaseFilterSelects();
+  populateSelectOrAdd("cs_benchCourt", benchCourtMasterValues(), t("opt_selectBenchCourt"));
   var list = filteredCases();
   var body = document.getElementById("caseTableBody");
   body.innerHTML = list.length? list.map(function(c){
@@ -1543,7 +1819,8 @@ function resetHearingForm(){
   hearingEditId = null;
   document.getElementById("h_caseId").value = "";
   document.getElementById("h_hearingDate").value = todayStr();
-  document.getElementById("h_benchCourt").value = "";
+  populateSelectOrAdd("h_benchCourt", benchCourtMasterValues(), t("opt_selectBenchCourt"));
+  resetSelectOrAdd("h_benchCourt","h_benchCourt_new");
   document.getElementById("h_employee").value = "";
   document.getElementById("h_nextDate").value = "";
   document.getElementById("h_proceedings").value = "";
@@ -1559,7 +1836,8 @@ function editHearing(id){
   hearingEditId = id;
   document.getElementById("h_caseId").value = h.caseId||"";
   document.getElementById("h_hearingDate").value = h.hearingDate||"";
-  document.getElementById("h_benchCourt").value = h.benchCourt||"";
+  populateSelectOrAdd("h_benchCourt", benchCourtMasterValues(), t("opt_selectBenchCourt"));
+  setSelectOrAddValue("h_benchCourt","h_benchCourt_new", h.benchCourt||"");
   document.getElementById("h_employee").value = h.employee||"";
   document.getElementById("h_nextDate").value = h.nextDate||"";
   document.getElementById("h_proceedings").value = h.proceedings||"";
@@ -1591,7 +1869,7 @@ document.getElementById("h_saveBtn").addEventListener("click", function(){
     id: hearingEditId || uid(),
     caseId: caseId,
     hearingDate: hearingDate,
-    benchCourt: document.getElementById("h_benchCourt").value.trim(),
+    benchCourt: getSelectOrAddValue("h_benchCourt","h_benchCourt_new"),
     employee: document.getElementById("h_employee").value,
     nextDate: document.getElementById("h_nextDate").value,
     proceedings: document.getElementById("h_proceedings").value.trim(),
@@ -1620,6 +1898,7 @@ document.getElementById("h_cancelBtn").addEventListener("click", resetHearingFor
 function populateHearingSelects(){
   populateCaseSelect(document.getElementById("h_caseId"), "opt_selectCase");
   populateCaseSelect(document.getElementById("hf_caseId"), "opt_allCases");
+  populateSelectOrAdd("h_benchCourt", benchCourtMasterValues(), t("opt_selectBenchCourt"));
   var empOpts = "<option value=''>"+esc(t("opt_none"))+"</option>"+uniqueSorted(STATE.employees.map(function(e){ return e.name; })).map(function(v){ return "<option value='"+esc(v)+"'>"+esc(v)+"</option>"; }).join("");
   var hEmp = document.getElementById("h_employee"); var keepH = hEmp.value; hEmp.innerHTML = empOpts; if(keepH) hEmp.value = keepH;
   var hfEmp = document.getElementById("hf_employee"); var keepF = hfEmp.value;
@@ -1993,7 +2272,8 @@ function resetDakInForm(){
   dakInEditId = null;
   document.getElementById("di_diaryNo").value = "";
   document.getElementById("di_receivedDate").value = todayStr();
-  document.getElementById("di_receivedFrom").value = "";
+  populateSelectOrAdd("di_receivedFrom", STATE.dakIn.map(function(d){ return d.receivedFrom; }), t("opt_selectReceivedFrom"));
+  resetSelectOrAdd("di_receivedFrom","di_receivedFrom_new");
   document.getElementById("di_theirRefNo").value = "";
   document.getElementById("di_theirRefDate").value = "";
   document.getElementById("di_subject").value = "";
@@ -2012,7 +2292,8 @@ function editDakIn(id){
   dakInEditId = id;
   document.getElementById("di_diaryNo").value = d.diaryNo||"";
   document.getElementById("di_receivedDate").value = d.receivedDate||"";
-  document.getElementById("di_receivedFrom").value = d.receivedFrom||"";
+  populateSelectOrAdd("di_receivedFrom", STATE.dakIn.map(function(d){ return d.receivedFrom; }), t("opt_selectReceivedFrom"));
+  setSelectOrAddValue("di_receivedFrom","di_receivedFrom_new", d.receivedFrom||"");
   document.getElementById("di_theirRefNo").value = d.theirRefNo||"";
   document.getElementById("di_theirRefDate").value = d.theirRefDate||"";
   document.getElementById("di_subject").value = d.subject||"";
@@ -2048,7 +2329,7 @@ document.getElementById("di_saveBtn").addEventListener("click", function(){
     id: dakInEditId || uid(),
     diaryNo: diaryNo,
     receivedDate: receivedDate,
-    receivedFrom: document.getElementById("di_receivedFrom").value.trim(),
+    receivedFrom: getSelectOrAddValue("di_receivedFrom","di_receivedFrom_new"),
     theirRefNo: document.getElementById("di_theirRefNo").value.trim(),
     theirRefDate: document.getElementById("di_theirRefDate").value,
     subject: document.getElementById("di_subject").value.trim(),
@@ -2118,6 +2399,7 @@ function renderDakIn(){
   if(!document.getElementById("dakInTableBody")) return;
   populateDakInFilterSelects();
   populateActiveEmployeeSelect(document.getElementById("di_markedTo"), "opt_none");
+  populateSelectOrAdd("di_receivedFrom", STATE.dakIn.map(function(d){ return d.receivedFrom; }), t("opt_selectReceivedFrom"));
   var list = filteredDakIn();
   var body = document.getElementById("dakInTableBody");
   body.innerHTML = list.length? list.map(function(d){
@@ -2140,7 +2422,8 @@ function resetDakOutForm(){
   dakOutEditId = null;
   document.getElementById("do_dispatchNo").value = "";
   document.getElementById("do_dispatchDate").value = todayStr();
-  document.getElementById("do_sentTo").value = "";
+  populateSelectOrAdd("do_sentTo", STATE.dakOut.map(function(d){ return d.sentTo; }), t("opt_selectSentTo"));
+  resetSelectOrAdd("do_sentTo","do_sentTo_new");
   document.getElementById("do_ourRefNo").value = "";
   document.getElementById("do_subject").value = "";
   document.getElementById("do_sentThrough").value = "Post";
@@ -2158,7 +2441,8 @@ function editDakOut(id){
   dakOutEditId = id;
   document.getElementById("do_dispatchNo").value = d.dispatchNo||"";
   document.getElementById("do_dispatchDate").value = d.dispatchDate||"";
-  document.getElementById("do_sentTo").value = d.sentTo||"";
+  populateSelectOrAdd("do_sentTo", STATE.dakOut.map(function(d){ return d.sentTo; }), t("opt_selectSentTo"));
+  setSelectOrAddValue("do_sentTo","do_sentTo_new", d.sentTo||"");
   document.getElementById("do_ourRefNo").value = d.ourRefNo||"";
   document.getElementById("do_subject").value = d.subject||"";
   document.getElementById("do_sentThrough").value = d.sentThrough||"Post";
@@ -2193,7 +2477,7 @@ document.getElementById("do_saveBtn").addEventListener("click", function(){
     id: dakOutEditId || uid(),
     dispatchNo: dispatchNo,
     dispatchDate: dispatchDate,
-    sentTo: document.getElementById("do_sentTo").value.trim(),
+    sentTo: getSelectOrAddValue("do_sentTo","do_sentTo_new"),
     ourRefNo: document.getElementById("do_ourRefNo").value.trim(),
     subject: document.getElementById("do_subject").value.trim(),
     sentThrough: document.getElementById("do_sentThrough").value,
@@ -2254,6 +2538,7 @@ function renderDakOut(){
   if(!document.getElementById("dakOutTableBody")) return;
   populateDakOutFilterSelects();
   populateActiveEmployeeSelect(document.getElementById("do_sentBy"), "opt_none");
+  populateSelectOrAdd("do_sentTo", STATE.dakOut.map(function(d){ return d.sentTo; }), t("opt_selectSentTo"));
   var list = filteredDakOut();
   var body = document.getElementById("dakOutTableBody");
   body.innerHTML = list.length? list.map(function(d){
@@ -2816,6 +3101,7 @@ auth.onAuthStateChanged(function(user){
           showAppScreen();
           startRealtimeSync();
           renderUsers();
+          startChat();
         });
       } else if(prevKey!==newKey){
         updateUserBar();
@@ -2830,8 +3116,183 @@ auth.onAuthStateChanged(function(user){
     CURRENT_USER = null;
     if(unsubscribeSharedDoc){ unsubscribeSharedDoc(); unsubscribeSharedDoc = null; }
     if(unsubscribeUserDoc){ unsubscribeUserDoc(); unsubscribeUserDoc = null; }
+    stopChat();
     showLoginScreen();
   }
+});
+
+/* ================= TEAM CHAT ================= */
+var CHAT_MESSAGES = [];
+var CHAT_PRESENCE = {};        /* uid -> {email, role, lastSeen(ms)} */
+var chatUnsubMessages = null;
+var chatUnsubPresence = null;
+var chatHeartbeatTimer = null;
+var chatUnreadCount = 0;
+var CHAT_ONLINE_WINDOW_MS = 60000;   /* consider a user "online" if seen within the last 60s */
+var CHAT_HEARTBEAT_MS = 25000;
+
+function chatDisplayName(msg){
+  if(!msg) return "?";
+  return msg.senderName || (msg.senderEmail? msg.senderEmail.split("@")[0] : "?");
+}
+function tsToMillis(ts){
+  if(!ts) return 0;
+  if(typeof ts.toMillis==="function") return ts.toMillis();
+  if(ts.seconds!=null) return ts.seconds*1000;
+  return 0;
+}
+function fmtChatTime(ms){
+  if(!ms) return "";
+  var d = new Date(ms);
+  var h = d.getHours(), m = d.getMinutes();
+  var ap = h>=12? "PM":"AM";
+  var h12 = h%12; if(h12===0) h12=12;
+  return h12+":"+(m<10?"0":"")+m+" "+ap;
+}
+function startChat(){
+  if(!CURRENT_USER) return;
+  stopChat(); /* guard against double-start */
+
+  var chatFirstSnapshot = true;
+  chatUnsubMessages = db.collection("chatMessages").orderBy("timestamp","desc").limit(150)
+    .onSnapshot(function(snap){
+      var list = [];
+      snap.forEach(function(doc){ list.push(doc.data()); });
+      list.reverse();
+      CHAT_MESSAGES = list;
+      if(!chatFirstSnapshot){
+        var panel = document.getElementById("chatPanel");
+        var isOpen = panel && panel.classList.contains("open");
+        snap.docChanges().forEach(function(ch){
+          if(ch.type==="added"){
+            var d = ch.doc.data();
+            if(!isOpen && (!CURRENT_USER || d.senderUid!==CURRENT_USER.uid)) chatUnreadCount++;
+          }
+        });
+        updateChatBadge();
+      }
+      chatFirstSnapshot = false;
+      renderChatMessages();
+    }, function(err){
+      /* Most likely cause: Firestore security rules on this project don't
+         yet allow the "chatMessages" collection — see firestore.rules file
+         for the block that needs to be added. Fail quietly in the UI. */
+      console.error("Chat messages listener error:", err);
+    });
+
+  chatUnsubPresence = db.collection("presence").onSnapshot(function(snap){
+    var map = {};
+    snap.forEach(function(doc){
+      var d = doc.data();
+      map[doc.id] = {email:d.email, role:d.role, lastSeen:tsToMillis(d.lastSeen)};
+    });
+    CHAT_PRESENCE = map;
+    renderChatOnline();
+  }, function(err){
+    console.error("Presence listener error:", err);
+  });
+
+  sendPresenceHeartbeat();
+  chatHeartbeatTimer = setInterval(sendPresenceHeartbeat, CHAT_HEARTBEAT_MS);
+}
+function stopChat(){
+  if(chatUnsubMessages){ chatUnsubMessages(); chatUnsubMessages = null; }
+  if(chatUnsubPresence){ chatUnsubPresence(); chatUnsubPresence = null; }
+  if(chatHeartbeatTimer){ clearInterval(chatHeartbeatTimer); chatHeartbeatTimer = null; }
+  CHAT_MESSAGES = [];
+  CHAT_PRESENCE = {};
+  chatUnreadCount = 0;
+  updateChatBadge();
+}
+function sendPresenceHeartbeat(){
+  if(!CURRENT_USER) return;
+  db.collection("presence").doc(CURRENT_USER.uid).set({
+    email: CURRENT_USER.username,
+    role: isAdmin()? "admin":"guest",
+    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+  }, {merge:true}).catch(function(err){ console.error("Presence heartbeat failed:", err); });
+}
+function renderChatOnline(){
+  var lang = document.documentElement.getAttribute("data-ui-lang") || "en";
+  var now = Date.now();
+  var n = 0;
+  var presence = CHAT_PRESENCE || {};
+  Object.keys(presence).forEach(function(uid){
+    if(now - presence[uid].lastSeen < CHAT_ONLINE_WINDOW_MS) n++;
+  });
+  var label = (I18N_UI[lang].chat_onlineCount || "{n} online").replace("{n}", n);
+  var el = document.getElementById("chatOnlineLabel");
+  if(el) el.textContent = label;
+}
+function escChat(s){
+  s = (s==null)? "" : String(s);
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function renderChatMessages(){
+  var lang = document.documentElement.getAttribute("data-ui-lang") || "en";
+  var body = document.getElementById("chatMessages");
+  if(!body) return;
+  var wasNearBottom = (body.scrollHeight - body.scrollTop - body.clientHeight) < 60;
+  body.innerHTML = "";
+  CHAT_MESSAGES = CHAT_MESSAGES || [];
+  if(CHAT_MESSAGES.length===0){
+    body.innerHTML = "<div class='chat-empty'>"+escChat(I18N_UI[lang].chat_noMessages||"No messages yet — say hello!")+"</div>";
+    return;
+  }
+  CHAT_MESSAGES.forEach(function(msg){
+    var mine = CURRENT_USER && msg.senderUid===CURRENT_USER.uid;
+    var name = mine? (I18N_UI[lang].chat_you||"You") : chatDisplayName(msg);
+    var time = fmtChatTime(tsToMillis(msg.timestamp));
+    var div = document.createElement("div");
+    div.className = "chat-msg"+(mine?" mine":"");
+    div.innerHTML = "<div class='chat-msg-meta'>"+escChat(name)+(time? " · "+escChat(time):"")+"</div>"+
+      "<div class='chat-msg-bubble'>"+escChat(msg.text)+"</div>";
+    body.appendChild(div);
+  });
+  if(wasNearBottom) body.scrollTop = body.scrollHeight;
+}
+function updateChatBadge(){
+  var badge = document.getElementById("chatBadge");
+  if(!badge) return;
+  if(chatUnreadCount>0){ badge.style.display="flex"; badge.textContent = chatUnreadCount>99? "99+":chatUnreadCount; }
+  else { badge.style.display="none"; }
+}
+function sendChatMessage(){
+  if(!CURRENT_USER) return;
+  var input = document.getElementById("chatInput");
+  var text = input.value.trim();
+  if(!text) return;
+  input.value = "";
+  db.collection("chatMessages").add({
+    text: text,
+    senderUid: CURRENT_USER.uid,
+    senderEmail: CURRENT_USER.username,
+    senderName: CURRENT_USER.username? CURRENT_USER.username.split("@")[0] : "",
+    senderRole: isAdmin()? "admin":"guest",
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(err){
+    toast("Could not send message: "+err.message);
+    input.value = text; /* give it back so nothing is lost */
+  });
+}
+document.getElementById("chatSendBtn").addEventListener("click", sendChatMessage);
+document.getElementById("chatInput").addEventListener("keydown", function(ev){
+  if(ev.key==="Enter" && !ev.shiftKey){ ev.preventDefault(); sendChatMessage(); }
+});
+document.getElementById("chatToggleBtn").addEventListener("click", function(){
+  var panel = document.getElementById("chatPanel");
+  var opening = !panel.classList.contains("open");
+  panel.classList.toggle("open");
+  if(opening){
+    chatUnreadCount = 0;
+    updateChatBadge();
+    var body = document.getElementById("chatMessages");
+    if(body) body.scrollTop = body.scrollHeight;
+    document.getElementById("chatInput").focus();
+  }
+});
+document.getElementById("chatCloseBtn").addEventListener("click", function(){
+  document.getElementById("chatPanel").classList.remove("open");
 });
 
 var ALL_USERS_CACHE = [];
@@ -3041,6 +3502,7 @@ en: {
   lbl_lastEditedBy:"Last edited by {who} on {when}",
   opt_allCaseNumbers:"All case numbers", opt_any:"Any", opt_allCases:"All cases", opt_none:"— none —", opt_selectCase:"Select case…",
   opt_pending:"Pending", opt_adjourned:"Adjourned", opt_decided:"Decided", opt_disposed:"Disposed", opt_withdrawn:"Withdrawn", opt_other:"Other",
+  opt_addNewValue:"+ Add a new value…", opt_selectBenchCourt:"Select bench/court…", opt_selectReceivedFrom:"Select received from…", opt_selectSentTo:"Select sent to…",
   opt_allowed:"Allowed", opt_dismissed:"Dismissed", opt_partlyAllowed:"Partly Allowed", opt_disposedOf:"Disposed of", opt_noticeIssued:"Notice Issued",
   opt_allNames:"All names", opt_allDesignations:"All designations",
   th_caseNo:"Case No", th_caseType:"Type", th_caseTitle:"Title", th_diaryNo:"Diary No", th_filingDate:"Filing Date", th_bench:"Bench/Court",
@@ -3132,7 +3594,80 @@ en: {
   tok_needSubmissionDate:"Enter the submission date.", tok_needTokenNo:"Enter the token number received from the Accounts Office.",
   tok_needBillNo:"Enter the Bill No.",
   tok_dupWarn:"This Token No is already used by another token entry. Save anyway?",
-  detail_caseFile:"Case File"
+  detail_caseFile:"Case File",
+
+  nav_helpSection:"Help", nav_help:"Help / Guide",
+  help_title:"Help & User Guide",
+  help_introText:"This is one shared system for the whole office, divided into three branches — Admin Branch, Record Branch, and Accounts Branch. Everything you enter is saved online immediately and every other signed-in user sees the same information. An Administrator has full access everywhere; a Guest's access depends on which branch(es) their Administrator has granted them under \"Users & Access\" — a section without permission still shows for viewing and printing, its Add/Edit/Delete controls are just disabled.",
+  help_dash_title:"Dashboard",
+  help_dash_intro:"A live overview of the whole system — everyone sees it on signing in.",
+  help_dash_s1:"The stat cards at the top summarise cases, hearings, and pending items across all branches.",
+  help_dash_s2:"\"Upcoming hearings\" lists everything due in the next 7 days, so nothing is missed.",
+  help_dash_s3:"\"Recently entered hearings\" shows the latest proceedings added by anyone, useful as a quick daily check.",
+  help_cases_title:"Cases — Main Register (Record Branch)",
+  help_cases_intro:"Register every case once here. Hearings and Results are entered separately against it, so the complete history builds up over time.",
+  help_cases_s1:"Fill in Case No, Case Type, Case Title, Diary No, Filing Date, Bench/Court, and Assigned Employee, then press \"Save case\".",
+  help_cases_s2:"Use \"Search & filter cases\" to quickly find a case by number, type, status, or assigned employee.",
+  help_cases_s3:"The table's \"Next Hearing\" and \"Latest Result\" columns are filled in automatically from the Hearings and Results sections.",
+  help_cases_s4:"\"Export visible rows (CSV)\" saves exactly the rows currently shown by your filters.",
+  help_hear_title:"Hearings — Proceedings History (Record Branch)",
+  help_hear_intro:"Every time a case is heard, add one entry here against that case — never overwrite an old one.",
+  help_hear_s1:"Pick the case first, then enter the hearing date, bench/court, and the proceedings/order for that date.",
+  help_hear_s2:"Set the \"Next Hearing Date\" here too — this is what feeds the Dashboard's upcoming-hearings list.",
+  help_hear_s3:"All past hearings for a case stay visible below in date order, so the full proceedings history is always at hand.",
+  help_res_title:"Results — Final & Interim Orders (Record Branch)",
+  help_res_intro:"Record the outcome of a case here — a final judgment or an interim order.",
+  help_res_s1:"Pick the case, the result date, and describe the order or judgment in the remarks.",
+  help_res_s2:"Once a final result is recorded, update the case's Status (in the Cases section) to Decided/Disposed so it stops appearing as pending.",
+  help_emp_title:"Employees (Admin Branch)",
+  help_emp_intro:"This is the master staff list, used to assign cases and hearings to the right person everywhere else in the system.",
+  help_emp_s1:"Add every staff member here first — their name then appears in the \"Assigned Employee\" dropdown across Cases and other sections.",
+  help_emp_s2:"Keep designations up to date, since they also appear on printed reports.",
+  help_disp_title:"Dispatch — Dak In / Dak Out (Record Branch)",
+  help_disp_intro:"A complete daily record of incoming and outgoing correspondence (Dak), separate from the case register.",
+  help_disp_s1:"Log every letter or file received (\"Dak In\") and every one sent out (\"Dak Out\"), with date, subject, and reference.",
+  help_disp_s2:"Use Search & filter to trace a specific letter later by date or subject.",
+  help_tok_title:"Token Register (Accounts Branch)",
+  help_tok_intro:"Track every bill sent to the Accounts Office for pre-audit or payment, from the day it's submitted until the cheque is received.",
+  help_tok_s1:"Record the bill details and its token number as soon as it's submitted.",
+  help_tok_s2:"Update its status (e.g. under audit, objection raised, cheque received) as it moves along, so its progress is always visible at a glance.",
+  help_rep_title:"Reports",
+  help_rep_intro:"A combined case-load summary for any date range you choose.",
+  help_rep_s1:"Pick a date range, then view the summary on screen.",
+  help_rep_s2:"Use \"Export report (Excel)\" or \"Print report\" to share or file a copy.",
+  help_usr_title:"Users & Access",
+  help_usr_intro:"This controls who can add, edit, or delete data, and in which branch.",
+  help_usr_s1:"New accounts sign up from the sign-in screen and start as Guest (view-only everywhere).",
+  help_usr_s2:"An Administrator ticks Admin Branch, Record Branch, and/or Accounts Branch for each Guest, matching exactly what that person needs to work on.",
+  help_usr_s3:"A Guest can always view and print every section, even one they have no branch permission for — only the Add/Edit/Delete controls stay disabled there.",
+  help_data_title:"Backup, Restore & Access",
+  help_data_intro:"Data is saved online immediately as everyone works, shared live across all signed-in users.",
+  help_data_s1:"Use \"Backup (save file)\" occasionally to keep an extra offline copy on this computer.",
+  help_data_s2:"\"Restore from file\" replaces all shared data with a backup file — Administrators only, since it affects everyone.",
+  help_faqTitle:"Frequently Asked Questions",
+  help_faq1_q:"I signed up but I can't add, edit, or delete anything — why?",
+  help_faq1_a:"New accounts start as Guest (view-only) for safety. An Administrator needs to grant you the relevant branch permission (Admin/Record/Accounts) under Users & Access before you can add, edit, or delete in that branch.",
+  help_faq2_q:"Why does this system have \"branches\" when the other Camp Office systems don't?",
+  help_faq2_a:"This system covers three different kinds of office work at once — Admin, Record, and Accounts — so permissions are split per branch instead of one simple Guest/Administrator switch, letting each Guest be granted exactly the access their actual job needs.",
+  help_faq3_q:"Which sections does each branch cover?",
+  help_faq3_a:"Admin Branch → Employees. Record Branch → Cases, Hearings, Results, Dispatch. Accounts Branch → Token Register. Reports and Backup/Restore are visible to everyone but Restore is Administrator-only.",
+  help_faq4_q:"How do I switch between English and Urdu?",
+  help_faq4_a:"Use the language selector at the top of the screen. It changes menus, labels, and buttons instantly for everyone's own screen — it doesn't change the data you've entered.",
+  help_faq5_q:"Where is my data stored — is it safe if this computer breaks?",
+  help_faq5_a:"Everything is stored online in this system's shared database, not on any one computer. If this computer is lost or damaged, the data is completely safe — just sign in again from any other computer.",
+  help_faq6_q:"Can more than one person use the system at the same time?",
+  help_faq6_a:"Yes. Everyone signed in sees the same live data, and changes made by one person appear for everyone else within a moment.",
+  help_faq7_q:"How does the Dashboard know which hearings are \"upcoming\"?",
+  help_faq7_a:"It reads the \"Next Hearing Date\" you set the last time you entered a hearing for each case, and lists anything falling in the next 7 days.",
+  help_faq8_q:"A case has been decided — what should I update?",
+  help_faq8_a:"Add the outcome in Results, then go back to that case in the Cases section and change its Status to Decided or Disposed so it drops off the pending lists.",
+  help_faq9_q:"How do I print a report or export it to Excel?",
+  help_faq9_a:"Open Reports, choose your date range, then use \"Print report\" or \"Export report (Excel)\" to share or file a copy.",
+  help_faq10_q:"Can I get case, hearing, or dispatch data into Excel?",
+  help_faq10_a:"Yes — most tables have an \"Export visible rows (CSV)\" or \"Export (Excel)\" button that saves exactly the rows currently shown by your filters, ready to open in Excel.",
+
+  chat_title:"Team Chat", chat_typeMessage:"Type a message…", chat_send:"Send",
+  chat_onlineCount:"{n} online", chat_noMessages:"No messages yet — say hello!", chat_you:"You", chat_guest:"Guest"
 },
 ur: {
   app_title:"ڈیلی کیس مینجمنٹ سسٹم",
@@ -3177,6 +3712,7 @@ ur: {
   lbl_lastEditedBy:"آخری بار {who} نے {when} کو تبدیل کیا",
   opt_allCaseNumbers:"تمام کیس نمبرز", opt_any:"کوئی بھی", opt_allCases:"تمام کیسز", opt_none:"— کوئی نہیں —", opt_selectCase:"کیس منتخب کریں…",
   opt_pending:"زیرِ التوا", opt_adjourned:"ملتوی", opt_decided:"فیصلہ شدہ", opt_disposed:"نمٹایا گیا", opt_withdrawn:"واپس لیا گیا", opt_other:"دیگر",
+  opt_addNewValue:"+ نئی ویلیو شامل کریں…", opt_selectBenchCourt:"بینچ/عدالت منتخب کریں…", opt_selectReceivedFrom:"موصول کنندہ منتخب کریں…", opt_selectSentTo:"بھیجنے کا مقام منتخب کریں…",
   opt_allowed:"منظور", opt_dismissed:"خارج", opt_partlyAllowed:"جزوی منظور", opt_disposedOf:"نمٹایا گیا", opt_noticeIssued:"نوٹس جاری",
   opt_allNames:"تمام نام", opt_allDesignations:"تمام عہدے",
   th_caseNo:"کیس نمبر", th_caseType:"قسم", th_caseTitle:"عنوان", th_diaryNo:"ڈائری نمبر", th_filingDate:"دائر کرنے کی تاریخ", th_bench:"بینچ/عدالت",
@@ -3268,7 +3804,80 @@ ur: {
   tok_needSubmissionDate:"جمع کروانے کی تاریخ درج کریں۔", tok_needTokenNo:"اکاؤنٹس آفس سے موصول ہونے والا ٹوکن نمبر درج کریں۔",
   tok_needBillNo:"بل نمبر درج کریں۔",
   tok_dupWarn:"یہ ٹوکن نمبر پہلے سے کسی اور ٹوکن اندراج میں استعمال ہو چکا ہے۔ کیا پھر بھی محفوظ کریں؟",
-  detail_caseFile:"کیس فائل"
+  detail_caseFile:"کیس فائل",
+
+  nav_helpSection:"مدد", nav_help:"مدد / رہنمائی",
+  help_title:"مدد اور صارف رہنما",
+  help_introText:"یہ پورے دفتر کے لیے ایک مشترکہ سسٹم ہے، جو تین برانچز میں تقسیم ہے — ایڈمن برانچ، ریکارڈ برانچ، اور اکاؤنٹس برانچ۔ آپ جو کچھ بھی درج کرتے ہیں وہ فوراً آن لائن محفوظ ہو جاتا ہے اور ہر سائن اِن یوزر وہی معلومات دیکھتا ہے۔ ایڈمنسٹریٹر کو ہر جگہ مکمل رسائی حاصل ہوتی ہے؛ گیسٹ کی رسائی اس بات پر منحصر ہے کہ ان کے ایڈمنسٹریٹر نے \"یوزرز اینڈ ایکسیس\" میں انہیں کون سی برانچ(ز) دی ہیں — جس سیکشن کی اجازت نہ ہو وہ دیکھنے اور پرنٹ کے لیے تو نظر آتا ہے، بس اس کے شامل/ترمیم/حذف کے بٹن غیر فعال رہتے ہیں۔",
+  help_dash_title:"ڈیش بورڈ",
+  help_dash_intro:"پورے سسٹم کا ایک لائیو جائزہ — ہر شخص سائن اِن ہوتے ہی اسے دیکھتا ہے۔",
+  help_dash_s1:"اوپر موجود اسٹیٹ کارڈز تمام برانچز میں کیسز، پیشیوں، اور زیرِ التوا معاملات کا خلاصہ دکھاتے ہیں۔",
+  help_dash_s2:"\"آئندہ پیشیاں\" اگلے 7 دنوں میں ہونے والی ہر پیشی کی فہرست دیتا ہے، تاکہ کچھ رہ نہ جائے۔",
+  help_dash_s3:"\"حال ہی میں درج کردہ پیشیاں\" کسی کے بھی شامل کردہ تازہ ترین کارروائیاں دکھاتا ہے، روزانہ فوری جائزے کے لیے مفید۔",
+  help_cases_title:"کیسز — مین رجسٹر (ریکارڈ برانچ)",
+  help_cases_intro:"ہر کیس یہاں صرف ایک بار درج کریں۔ پیشیاں اور نتائج اس کے خلاف الگ سے درج کیے جاتے ہیں، تاکہ وقت کے ساتھ مکمل تاریخ بنتی رہے۔",
+  help_cases_s1:"کیس نمبر، کیس کی قسم، کیس کا عنوان، ڈائری نمبر، فائلنگ تاریخ، بینچ/عدالت، اور مقررہ ملازم درج کریں، پھر \"کیس محفوظ کریں\" دبائیں۔",
+  help_cases_s2:"کسی کیس کو نمبر، قسم، صورتحال، یا مقررہ ملازم کے ذریعے جلدی تلاش کرنے کے لیے \"کیسز تلاش اور فلٹر کریں\" استعمال کریں۔",
+  help_cases_s3:"ٹیبل کے \"آئندہ پیشی\" اور \"تازہ ترین نتیجہ\" کالم پیشیاں اور نتائج سیکشنز سے خودکار طور پر بھر جاتے ہیں۔",
+  help_cases_s4:"\"نظر آنے والی قطاریں (CSV) ایکسپورٹ کریں\" آپ کے فلٹرز کے مطابق فی الحال نظر آنے والی قطاریں ہی محفوظ کرتا ہے۔",
+  help_hear_title:"پیشیاں — کارروائی کی تاریخ (ریکارڈ برانچ)",
+  help_hear_intro:"جب بھی کسی کیس کی پیشی ہو، اس کیس کے خلاف یہاں ایک نیا اندراج شامل کریں — کبھی پرانا اندراج مٹا کر نہ لکھیں۔",
+  help_hear_s1:"پہلے کیس منتخب کریں، پھر پیشی کی تاریخ، بینچ/عدالت، اور اس تاریخ کی کارروائی/حکم درج کریں۔",
+  help_hear_s2:"یہاں \"آئندہ پیشی کی تاریخ\" بھی سیٹ کریں — یہی ڈیش بورڈ کی آئندہ پیشیوں کی فہرست کو معلومات فراہم کرتا ہے۔",
+  help_hear_s3:"کسی کیس کی تمام گزشتہ پیشیاں نیچے تاریخ کی ترتیب میں نظر آتی رہتی ہیں، تاکہ مکمل کارروائی کی تاریخ ہمیشہ دستیاب رہے۔",
+  help_res_title:"نتائج — حتمی اور عبوری احکامات (ریکارڈ برانچ)",
+  help_res_intro:"کیس کا نتیجہ یہاں درج کریں — چاہے وہ حتمی فیصلہ ہو یا عبوری حکم۔",
+  help_res_s1:"کیس، نتیجے کی تاریخ منتخب کریں، اور تبصروں میں حکم یا فیصلے کی تفصیل لکھیں۔",
+  help_res_s2:"جب حتمی نتیجہ درج ہو جائے، تو کیسز سیکشن میں جا کر اس کیس کی صورتحال کو Decided/Disposed میں تبدیل کریں تاکہ وہ زیرِ التوا فہرست سے ہٹ جائے۔",
+  help_emp_title:"ملازمین (ایڈمن برانچ)",
+  help_emp_intro:"یہ عملے کی مرکزی فہرست ہے، جو سسٹم میں ہر جگہ کیسز اور پیشیاں درست شخص کو تفویض کرنے کے لیے استعمال ہوتی ہے۔",
+  help_emp_s1:"پہلے ہر ملازم کو یہاں شامل کریں — پھر ان کا نام کیسز اور دیگر سیکشنز میں \"مقررہ ملازم\" ڈراپ ڈاؤن میں نظر آئے گا۔",
+  help_emp_s2:"عہدے تازہ رکھیں، کیونکہ یہ پرنٹ شدہ رپورٹس میں بھی نظر آتے ہیں۔",
+  help_disp_title:"ڈسپیچ — ڈاک اِن / ڈاک آؤٹ (ریکارڈ برانچ)",
+  help_disp_intro:"آنے اور جانے والی خط و کتابت (ڈاک) کا مکمل روزانہ ریکارڈ، کیس رجسٹر سے الگ۔",
+  help_disp_s1:"ہر موصولہ خط یا فائل (\"ڈاک اِن\") اور ہر بھیجی گئی (\"ڈاک آؤٹ\") کو تاریخ، موضوع، اور حوالے کے ساتھ درج کریں۔",
+  help_disp_s2:"بعد میں کسی خاص خط کو تاریخ یا موضوع کے ذریعے تلاش کرنے کے لیے فلٹر استعمال کریں۔",
+  help_tok_title:"ٹوکن رجسٹر (اکاؤنٹس برانچ)",
+  help_tok_intro:"اکاؤنٹس آفس کو پری آڈٹ یا ادائیگی کے لیے بھیجے گئے ہر بل کو، جمع کروانے کے دن سے چیک ملنے تک ٹریک کریں۔",
+  help_tok_s1:"بل کی تفصیلات اور اس کا ٹوکن نمبر جمع کرواتے ہی درج کریں۔",
+  help_tok_s2:"اس کی صورتحال (مثلاً آڈٹ میں، اعتراض، چیک موصول) کو اپڈیٹ کرتے رہیں، تاکہ اس کی پیش رفت ہمیشہ ایک نظر میں نظر آئے۔",
+  help_rep_title:"رپورٹس",
+  help_rep_intro:"آپ کی منتخب کردہ کسی بھی تاریخ کی حد کے لیے مشترکہ کیس لوڈ کا خلاصہ۔",
+  help_rep_s1:"ایک تاریخ کی حد منتخب کریں، پھر خلاصہ اسکرین پر دیکھیں۔",
+  help_rep_s2:"شیئر یا فائل کرنے کے لیے \"رپورٹ ایکسپورٹ (ایکسل)\" یا \"رپورٹ پرنٹ کریں\" استعمال کریں۔",
+  help_usr_title:"یوزرز اینڈ ایکسیس",
+  help_usr_intro:"یہ کنٹرول کرتا ہے کہ کون ڈیٹا شامل، ترمیم، یا حذف کر سکتا ہے، اور کس برانچ میں۔",
+  help_usr_s1:"نئے اکاؤنٹس سائن اِن اسکرین سے خود سائن اپ کرتے ہیں اور بطور گیسٹ شروع ہوتے ہیں (ہر جگہ صرف دیکھنے کی اجازت)۔",
+  help_usr_s2:"ایڈمنسٹریٹر ہر گیسٹ کے لیے ایڈمن برانچ، ریکارڈ برانچ، اور/یا اکاؤنٹس برانچ کو ٹک کرتا ہے، بالکل اسی کے مطابق جو اس شخص کے کام کے لیے ضروری ہو۔",
+  help_usr_s3:"گیسٹ ہمیشہ ہر سیکشن دیکھ اور پرنٹ کر سکتا ہے، چاہے اسے اس کی برانچ کی اجازت نہ بھی ہو — صرف شامل/ترمیم/حذف کے بٹن وہاں غیر فعال رہتے ہیں۔",
+  help_data_title:"بیک اپ، بحالی اور رسائی",
+  help_data_intro:"سب کے کام کرتے ہی ڈیٹا فوراً آن لائن محفوظ ہو جاتا ہے، تمام سائن اِن یوزرز میں لائیو مشترک۔",
+  help_data_s1:"اس کمپیوٹر پر ایک اضافی آف لائن کاپی رکھنے کے لیے کبھی کبھار \"بیک اپ (فائل محفوظ کریں)\" استعمال کریں۔",
+  help_data_s2:"\"فائل سے بحال کریں\" تمام مشترکہ ڈیٹا کو بیک اپ فائل سے بدل دیتا ہے — صرف ایڈمنسٹریٹرز کے لیے، کیونکہ یہ سب کو متاثر کرتا ہے۔",
+  help_faqTitle:"اکثر پوچھے جانے والے سوالات",
+  help_faq1_q:"میں نے سائن اپ کر لیا لیکن کچھ شامل، ترمیم، یا حذف نہیں کر سکتا — کیوں؟",
+  help_faq1_a:"نئے اکاؤنٹس حفاظت کی خاطر گیسٹ (صرف دیکھنے کی اجازت) کے طور پر شروع ہوتے ہیں۔ کسی برانچ میں شامل/ترمیم/حذف کرنے کے لیے ایڈمنسٹریٹر کو یوزرز اینڈ ایکسیس میں آپ کو متعلقہ برانچ کی اجازت (ایڈمن/ریکارڈ/اکاؤنٹس) دینی ہوگی۔",
+  help_faq2_q:"دیگر کیمپ آفس سسٹمز میں \"برانچز\" نہیں ہیں، اس سسٹم میں کیوں ہیں؟",
+  help_faq2_a:"یہ سسٹم بیک وقت تین مختلف قسم کے دفتری کام سنبھالتا ہے — ایڈمن، ریکارڈ، اور اکاؤنٹس — اس لیے اجازتیں ایک سادہ گیسٹ/ایڈمنسٹریٹر سوئچ کی بجائے فی برانچ تقسیم کی گئی ہیں، تاکہ ہر گیسٹ کو بالکل وہی رسائی دی جا سکے جو اس کے اصل کام کے لیے درکار ہے۔",
+  help_faq3_q:"ہر برانچ کن سیکشنز کا احاطہ کرتی ہے؟",
+  help_faq3_a:"ایڈمن برانچ ← ملازمین۔ ریکارڈ برانچ ← کیسز، پیشیاں، نتائج، ڈسپیچ۔ اکاؤنٹس برانچ ← ٹوکن رجسٹر۔ رپورٹس اور بیک اپ/بحالی سب کو نظر آتے ہیں لیکن بحالی صرف ایڈمنسٹریٹر کے لیے ہے۔",
+  help_faq4_q:"میں انگریزی اور اردو کے درمیان کیسے تبدیل کروں؟",
+  help_faq4_a:"اسکرین کے اوپر زبان منتخب کرنے والا خانہ استعمال کریں۔ یہ ہر شخص کی اپنی اسکرین کے مینو، لیبل، اور بٹن فوراً تبدیل کر دیتا ہے — یہ آپ کا درج کردہ ڈیٹا تبدیل نہیں کرتا۔",
+  help_faq5_q:"میرا ڈیٹا کہاں محفوظ ہے — اگر یہ کمپیوٹر خراب ہو جائے تو کیا یہ محفوظ ہے؟",
+  help_faq5_a:"ہر چیز اس سسٹم کے مشترکہ ڈیٹابیس میں آن لائن محفوظ ہے، کسی ایک کمپیوٹر پر نہیں۔ اگر یہ کمپیوٹر گم یا خراب ہو جائے، تو ڈیٹا مکمل طور پر محفوظ ہے — بس کسی اور کمپیوٹر سے دوبارہ سائن اِن کریں۔",
+  help_faq6_q:"کیا ایک سے زیادہ افراد بیک وقت سسٹم استعمال کر سکتے ہیں؟",
+  help_faq6_a:"جی ہاں۔ سائن اِن ہر شخص وہی لائیو ڈیٹا دیکھتا ہے، اور ایک شخص کی کی گئی تبدیلی چند لمحوں میں سب کو نظر آ جاتی ہے۔",
+  help_faq7_q:"ڈیش بورڈ کو کیسے پتہ چلتا ہے کہ کون سی پیشیاں \"آئندہ\" ہیں؟",
+  help_faq7_a:"یہ ہر کیس کے لیے آپ کی آخری بار درج کردہ \"آئندہ پیشی کی تاریخ\" پڑھتا ہے، اور اگلے 7 دنوں میں آنے والی ہر چیز کی فہرست دیتا ہے۔",
+  help_faq8_q:"کسی کیس کا فیصلہ ہو گیا ہے — مجھے کیا اپڈیٹ کرنا چاہیے؟",
+  help_faq8_a:"نتائج میں نتیجہ شامل کریں، پھر کیسز سیکشن میں اس کیس پر جا کر اس کی صورتحال کو Decided یا Disposed میں تبدیل کریں تاکہ وہ زیرِ التوا فہرستوں سے ہٹ جائے۔",
+  help_faq9_q:"میں رپورٹ کیسے پرنٹ کروں یا ایکسل میں ایکسپورٹ کروں؟",
+  help_faq9_a:"رپورٹس کھولیں، اپنی تاریخ کی حد منتخب کریں، پھر شیئر یا فائل کرنے کے لیے \"رپورٹ پرنٹ کریں\" یا \"رپورٹ ایکسپورٹ (ایکسل)\" استعمال کریں۔",
+  help_faq10_q:"کیا میں کیس، پیشی، یا ڈسپیچ کا ڈیٹا ایکسل میں لا سکتا ہوں؟",
+  help_faq10_a:"جی ہاں — زیادہ تر ٹیبلز میں \"نظر آنے والی قطاریں (CSV) ایکسپورٹ کریں\" یا \"ایکسپورٹ (ایکسل)\" کا بٹن ہوتا ہے جو آپ کے فلٹرز کے مطابق فی الحال نظر آنے والی قطاریں ہی محفوظ کرتا ہے، ایکسل میں کھولنے کے لیے تیار۔",
+
+  chat_title:"ٹیم چیٹ", chat_typeMessage:"پیغام لکھیں…", chat_send:"بھیجیں",
+  chat_onlineCount:"{n} آن لائن", chat_noMessages:"ابھی تک کوئی پیغام نہیں — سلام کہیں!", chat_you:"آپ", chat_guest:"گیسٹ"
 }
 };
 function t(key){
@@ -3282,7 +3891,8 @@ function t(key){
 var SELECT_PLACEHOLDER_KEYS = {
   csf_caseType:"opt_any", csf_employee:"opt_any", hf_employee:"opt_any", rsf_category:"opt_any",
   h_caseId:"opt_selectCase", rs_caseId:"opt_selectCase", hf_caseId:"opt_allCases", rsf_caseId:"opt_allCases",
-  cs_assignedEmployee:"opt_none", h_employee:"opt_none", di_markedTo:"opt_none", do_sentBy:"opt_none", tk_submittedBy:"opt_none"
+  cs_assignedEmployee:"opt_none", h_employee:"opt_none", di_markedTo:"opt_none", do_sentBy:"opt_none", tk_submittedBy:"opt_none",
+  cs_benchCourt:"opt_selectBenchCourt", h_benchCourt:"opt_selectBenchCourt", di_receivedFrom:"opt_selectReceivedFrom", do_sentTo:"opt_selectSentTo"
 };
 function refreshSelectPlaceholders(){
   Object.keys(SELECT_PLACEHOLDER_KEYS).forEach(function(id){
@@ -3299,16 +3909,28 @@ function applyUILang(lang){
     var val = I18N_UI[lang][key];
     if(val!=null) el.textContent = val;
   });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(function(el){
+    var key = el.getAttribute("data-i18n-placeholder");
+    var val = I18N_UI[lang][key];
+    if(val!=null) el.setAttribute("placeholder", val);
+  });
   refreshSelectPlaceholders();
   var sel = document.getElementById("uiLangSelect");
   if(sel) sel.value = lang;
   try{ localStorage.setItem(UI_LANG_STORAGE_KEY, lang); }catch(e){}
+  if(typeof renderChatOnline==="function") renderChatOnline();
+  if(typeof renderChatMessages==="function") renderChatMessages();
 }
 (function initUILang(){
   var saved = "en";
   try{ saved = localStorage.getItem(UI_LANG_STORAGE_KEY) || "en"; }catch(e){}
   applyUILang(saved);
 })();
+
+wireSelectOrAdd("cs_benchCourt","cs_benchCourt_new");
+wireSelectOrAdd("h_benchCourt","h_benchCourt_new");
+wireSelectOrAdd("di_receivedFrom","di_receivedFrom_new");
+wireSelectOrAdd("do_sentTo","do_sentTo_new");
 
 })();
 
