@@ -416,7 +416,7 @@
   .detail-section-title{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--navy);font-weight:700;margin:18px 0 8px;}
 
   @media print{
-    nav.sidenav,.search-bar,.btnbar,.topbar,.row-actions,.card.entry-form,footer.appfoot,.auth-screen,.userbar,#chatToggleBtn,#chatPanel{display:none !important;}
+    nav.sidenav,.search-bar,.btnbar,.topbar,.row-actions,.row-actions-th,.card.entry-form,footer.appfoot,.auth-screen,.userbar,#chatToggleBtn,#chatPanel{display:none !important;}
     .shell{display:block;}
     main{padding:0;max-width:none;}
     body{background:#fff;}
@@ -452,6 +452,7 @@
 .pb-print-sig-img{height:42px;max-width:160px;object-fit:contain;display:block;margin-bottom:2px;}
 .pb-print-masthead{display:none;}
 .pb-print-signfoot{display:none;}
+.pb-print-extra-fields{display:none;}
 @media print{
   .pb-print-masthead{display:flex !important;align-items:center;gap:12px;border-bottom:2px solid #B8860B;padding-bottom:8px;margin-bottom:14px;}
   .pb-print-masthead img{height:56px;width:auto;}
@@ -459,7 +460,25 @@
   .pb-print-masthead .pb-mh-t1{font-weight:700;font-size:15px;color:#153A5B;}
   .pb-print-masthead .pb-mh-t2{font-size:11px;color:#444;}
   .pb-print-signfoot{display:block !important;margin-top:24px;padding-top:8px;border-top:1px solid #999;font-size:12px;color:#222;}
+  .pb-print-extra-fields{display:block !important;font-size:11.5px;color:#222;margin-bottom:12px;line-height:1.7;border-bottom:1px dashed #999;padding-bottom:8px;}
+  .pb-print-extra-fields .hf-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 20px;}
 }
+.hf-modal-overlay{position:fixed;inset:0;background:rgba(10,20,30,.55);display:none;align-items:center;justify-content:center;z-index:99999;}
+.hf-modal{background:#fff;border-radius:10px;padding:22px 24px;max-width:420px;width:92%;max-height:85vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.3);}
+.hf-modal h3{margin:0 0 4px;font-size:16px;color:#153A5B;}
+.hf-modal .pb-sub{font-size:12px;color:#666;margin-bottom:14px;line-height:1.7;}
+.hf-modal .field{margin-bottom:12px;}
+.hf-modal label{display:block;font-size:12.5px;margin-bottom:4px;color:#333;}
+.hf-modal input[type=text]{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;font-family:inherit;}
+.hf-check-row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #eee;}
+.hf-check-row:last-of-type{border-bottom:none;}
+.hf-check-row input[type=checkbox]{margin-top:3px;}
+.hf-check-row .hf-check-label{font-size:13px;color:#222;display:block;}
+.hf-check-row .hf-check-sub{font-size:11px;color:#777;}
+.hf-modal .pb-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+.hf-modal button{padding:8px 18px;border-radius:6px;border:none;cursor:pointer;font-size:13.5px;}
+.hf-modal .pb-cancel{background:#eee;color:#333;}
+.hf-modal .pb-confirm{background:#1F4E78;color:#fff;font-weight:600;}
 </style>
 </head>
 <body>
@@ -470,6 +489,7 @@
     <div class="pb-mh-t2">Supreme Court of Pakistan, Islamabad</div>
   </div>
 </div>
+<div class="pb-print-extra-fields" id="pbPrintExtraFields"></div>
 
 
 <!-- ================= AUTH: FIRST-RUN SETUP ================= -->
@@ -506,6 +526,7 @@
   <div class="detail-shell">
     <div class="detail-toolbar">
       <button class="btn" id="d_printBtn" data-i18n="btn_print">Print</button>
+      <button id="hfConfigBtn_detail" type="button" class="btn ghost small" style="display:none;" title="Case detail header/footer fields / کیس تفصیل ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
       <button class="btn ghost" id="d_closeBtn" data-i18n="btn_close">Close</button>
     </div>
     <div class="detail-paper" id="detailPaper"></div>
@@ -536,6 +557,8 @@
         </select>
       </label>
       <button id="globalPrintBtn" data-i18n="btn_printCurrent">Print current view</button>
+      <button id="hfConfigBtn_panel" type="button" class="btn ghost small" style="display:none;" title="Report header/footer fields / رپورٹ ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
+      <button id="colsConfigBtn_panel" type="button" class="btn ghost small" style="display:none;" title="Select which columns print for this panel / اس پینل کے لیے پرنٹ کالم منتخب کریں">☰ Select Columns</button>
       <span><span data-i18n="lbl_signedInAs">Signed in as</span> <b id="currentUserLabel">—</b> <span class="role-badge" id="currentUserRole"></span></span>
       <a href="../" class="btn ghost small" title="Home / پورٹل پر واپس جائیں" style="text-decoration:none;">🏠 Home</a>
       <a href="../#ads" class="btn ghost small" title="اشتہارات دیکھیں / View Advertisements" style="text-decoration:none;">📢 اشتہارات / Ads</a>
@@ -682,9 +705,9 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th data-i18n="th_caseNo">Case No</th><th data-i18n="th_caseType">Type</th><th data-i18n="th_caseTitle">Title</th><th data-i18n="th_diaryNo">Diary No</th>
-            <th data-i18n="th_filingDate">Filing Date</th><th data-i18n="th_bench">Bench/Court</th><th data-i18n="th_assignedEmployee">Assigned Employee</th>
-            <th data-i18n="th_status">Status</th><th data-i18n="th_nextDate">Next Hearing</th><th data-i18n="th_lastResult">Latest Result</th><th data-i18n="th_actions">Actions</th>
+            <th data-col="caseNo" data-i18n="th_caseNo">Case No</th><th data-col="caseType" data-i18n="th_caseType">Type</th><th data-col="caseTitle" data-i18n="th_caseTitle">Title</th><th data-col="diaryNo" data-i18n="th_diaryNo">Diary No</th>
+            <th data-col="filingDate" data-i18n="th_filingDate">Filing Date</th><th data-col="benchCourt" data-i18n="th_bench">Bench/Court</th><th data-col="assignedEmployee" data-i18n="th_assignedEmployee">Assigned Employee</th>
+            <th data-col="status" data-i18n="th_status">Status</th><th data-col="nextDate" data-i18n="th_nextDate">Next Hearing</th><th data-col="lastResult" data-i18n="th_lastResult">Latest Result</th><th class="row-actions-th" data-i18n="th_actions">Actions</th>
           </tr></thead>
           <tbody id="caseTableBody"></tbody>
         </table>
@@ -742,8 +765,8 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th data-i18n="th_caseNo">Case No</th><th data-i18n="th_hearingDate">Hearing Date</th><th data-i18n="th_bench">Bench/Court</th><th data-i18n="th_employee">Employee</th>
-            <th data-i18n="th_proceedings">Proceedings/Order</th><th data-i18n="th_nextDate">Next Date</th><th data-i18n="lbl_remarks">Remarks</th><th data-i18n="th_actions">Actions</th>
+            <th data-col="caseNo" data-i18n="th_caseNo">Case No</th><th data-col="hearingDate" data-i18n="th_hearingDate">Hearing Date</th><th data-col="benchCourt" data-i18n="th_bench">Bench/Court</th><th data-col="employee" data-i18n="th_employee">Employee</th>
+            <th data-col="proceedings" data-i18n="th_proceedings">Proceedings/Order</th><th data-col="nextDate" data-i18n="th_nextDate">Next Date</th><th data-col="remarks" data-i18n="lbl_remarks">Remarks</th><th class="row-actions-th" data-i18n="th_actions">Actions</th>
           </tr></thead>
           <tbody id="hearingTableBody"></tbody>
         </table>
@@ -805,8 +828,8 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th data-i18n="th_caseNo">Case No</th><th data-i18n="th_resultDate">Result Date</th><th data-i18n="th_resultCategory">Category</th>
-            <th data-i18n="th_shortOrder">Short Order</th><th data-i18n="th_detailedRemarks">Detailed Remarks</th><th data-i18n="th_actions">Actions</th>
+            <th data-col="caseNo" data-i18n="th_caseNo">Case No</th><th data-col="resultDate" data-i18n="th_resultDate">Result Date</th><th data-col="resultCategory" data-i18n="th_resultCategory">Category</th>
+            <th data-col="shortOrder" data-i18n="th_shortOrder">Short Order</th><th data-col="detailedRemarks" data-i18n="th_detailedRemarks">Detailed Remarks</th><th class="row-actions-th" data-i18n="th_actions">Actions</th>
           </tr></thead>
           <tbody id="resultTableBody"></tbody>
         </table>
@@ -867,8 +890,8 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th data-i18n="emp_employeeId">Employee ID</th><th data-i18n="lbl_name">Name</th><th data-i18n="emp_designation">Designation</th><th data-i18n="emp_soName">Son of</th><th data-i18n="emp_section">Section</th>
-            <th data-i18n="emp_mobile">Mobile No</th><th data-i18n="emp_email">Office Email</th><th data-i18n="th_status">Status</th><th data-i18n="emp_assignedCases">Assigned Cases</th><th data-i18n="th_actions">Actions</th>
+            <th data-col="employeeId" data-i18n="emp_employeeId">Employee ID</th><th data-col="name" data-i18n="lbl_name">Name</th><th data-col="designation" data-i18n="emp_designation">Designation</th><th data-col="soName" data-i18n="emp_soName">Son of</th><th data-col="section" data-i18n="emp_section">Section</th>
+            <th data-col="mobile" data-i18n="emp_mobile">Mobile No</th><th data-col="email" data-i18n="emp_email">Office Email</th><th data-col="status" data-i18n="th_status">Status</th><th data-col="assignedCases" data-i18n="emp_assignedCases">Assigned Cases</th><th class="row-actions-th" data-i18n="th_actions">Actions</th>
           </tr></thead>
           <tbody id="employeeTableBody"></tbody>
         </table>
@@ -965,9 +988,9 @@
         <div class="table-wrap">
           <table>
             <thead><tr>
-              <th data-i18n="disp_diaryNo">Diary No</th><th data-i18n="disp_receivedDate">Received Date</th><th data-i18n="disp_receivedFrom">Received From</th>
-              <th data-i18n="disp_theirRefNo">Their Ref No</th><th data-i18n="disp_subject">Subject</th><th data-i18n="disp_receivedThrough">Through</th>
-              <th data-i18n="disp_markedTo">Marked To</th><th data-i18n="disp_status">Status</th><th data-i18n="th_actions">Actions</th>
+              <th data-col="diaryNo" data-i18n="disp_diaryNo">Diary No</th><th data-col="receivedDate" data-i18n="disp_receivedDate">Received Date</th><th data-col="receivedFrom" data-i18n="disp_receivedFrom">Received From</th>
+              <th data-col="theirRefNo" data-i18n="disp_theirRefNo">Their Ref No</th><th data-col="subject" data-i18n="disp_subject">Subject</th><th data-col="receivedThrough" data-i18n="disp_receivedThrough">Through</th>
+              <th data-col="markedTo" data-i18n="disp_markedTo">Marked To</th><th data-col="status" data-i18n="disp_status">Status</th><th class="row-actions-th" data-i18n="th_actions">Actions</th>
             </tr></thead>
             <tbody id="dakInTableBody"></tbody>
           </table>
@@ -1049,9 +1072,9 @@
         <div class="table-wrap">
           <table>
             <thead><tr>
-              <th data-i18n="disp_dispatchNo">Dispatch No</th><th data-i18n="disp_dispatchDate">Dispatch Date</th><th data-i18n="disp_sentTo">Sent To</th>
-              <th data-i18n="disp_ourRefNo">Our Ref No</th><th data-i18n="disp_subject">Subject</th><th data-i18n="disp_sentThrough">Through</th>
-              <th data-i18n="disp_sentBy">Sent By</th><th data-i18n="disp_status">Status</th><th data-i18n="th_actions">Actions</th>
+              <th data-col="dispatchNo" data-i18n="disp_dispatchNo">Dispatch No</th><th data-col="dispatchDate" data-i18n="disp_dispatchDate">Dispatch Date</th><th data-col="sentTo" data-i18n="disp_sentTo">Sent To</th>
+              <th data-col="ourRefNo" data-i18n="disp_ourRefNo">Our Ref No</th><th data-col="subject" data-i18n="disp_subject">Subject</th><th data-col="sentThrough" data-i18n="disp_sentThrough">Through</th>
+              <th data-col="sentBy" data-i18n="disp_sentBy">Sent By</th><th data-col="status" data-i18n="disp_status">Status</th><th class="row-actions-th" data-i18n="th_actions">Actions</th>
             </tr></thead>
             <tbody id="dakOutTableBody"></tbody>
           </table>
@@ -1138,9 +1161,9 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th data-i18n="tok_billNo">Bill No</th><th data-i18n="tok_billType">Bill Type</th><th data-i18n="tok_billAmount">Bill Amount</th>
-            <th data-i18n="tok_submissionDate">Submission Date</th><th data-i18n="tok_tokenNo">Token No</th><th data-i18n="tok_submittedBy">Submitted By</th>
-            <th data-i18n="disp_status">Status</th><th data-i18n="tok_chequeNo">Cheque No</th><th data-i18n="th_actions">Actions</th>
+            <th data-col="billNo" data-i18n="tok_billNo">Bill No</th><th data-col="billType" data-i18n="tok_billType">Bill Type</th><th data-col="billAmount" data-i18n="tok_billAmount">Bill Amount</th>
+            <th data-col="submissionDate" data-i18n="tok_submissionDate">Submission Date</th><th data-col="tokenNo" data-i18n="tok_tokenNo">Token No</th><th data-col="submittedBy" data-i18n="tok_submittedBy">Submitted By</th>
+            <th data-col="status" data-i18n="disp_status">Status</th><th data-col="chequeNo" data-i18n="tok_chequeNo">Cheque No</th><th class="row-actions-th" data-i18n="th_actions">Actions</th>
           </tr></thead>
           <tbody id="tokenTableBody"></tbody>
         </table>
@@ -1458,6 +1481,47 @@
   </div>
 </div>
 <div class="pb-print-signfoot" id="pbPrintSignfoot"></div>
+<div class="hf-modal-overlay" id="hfModalOverlay">
+  <div class="hf-modal">
+    <h3 id="hfModalTitle">Header/Footer Fields</h3>
+    <div class="pb-sub">اس پرنٹ پر یہ اختیاری فیلڈز دکھانی ہیں یا نہیں، منتخب کریں (صرف Administrator کو نظر آتا ہے)۔<br>Choose which optional fields should appear on this print (Administrator only).</div>
+    <div class="field"><label>دفتر کا پتہ / Office Address</label><input type="text" id="hfOfficeAddress" placeholder="e.g. Camp Office, Prosecutor General Punjab, Supreme Court of Pakistan, Islamabad"></div>
+    <div class="field"><label>رابطہ نمبر / Contact Number</label><input type="text" id="hfOfficeContact" placeholder="e.g. 051-1234567"></div>
+    <div class="field"><label>تیار کردہ افسر کا نام / Prepared By Name</label><input type="text" id="hfPreparedName" placeholder="e.g. Iftikhar Ahmed"></div>
+    <div class="field"><label>تیار کردہ افسر کا عہدہ / Prepared By Designation</label><input type="text" id="hfPreparedDesignation" placeholder="e.g. Junior Clerk"></div>
+    <div class="hf-check-row">
+      <input type="checkbox" id="hfChkDateDiary">
+      <label for="hfChkDateDiary"><span class="hf-check-label">تاریخ اور ڈائری نمبر / Date &amp; Diary No.</span><span class="hf-check-sub">Prints today's date, with a blank line for the diary number.</span></label>
+    </div>
+    <div class="hf-check-row">
+      <input type="checkbox" id="hfChkAddress">
+      <label for="hfChkAddress"><span class="hf-check-label">دفتر کا پتہ/رابطہ نمبر / Office Address &amp; Contact</span><span class="hf-check-sub">Prints the office address and contact number set above.</span></label>
+    </div>
+    <div class="hf-check-row">
+      <input type="checkbox" id="hfChkPrepared">
+      <label for="hfChkPrepared"><span class="hf-check-label">تیار کردہ افسر کا نام/عہدہ / Prepared By Name &amp; Designation</span><span class="hf-check-sub">Prints the name/designation set above.</span></label>
+    </div>
+    <div class="hf-check-row">
+      <input type="checkbox" id="hfChkReference">
+      <label for="hfChkReference"><span class="hf-check-label">حوالہ نمبر / Reference No.</span><span class="hf-check-sub">Prints a blank line for a reference/file number.</span></label>
+    </div>
+    <div class="pb-actions">
+      <button type="button" class="pb-cancel" id="hfCancelBtn">Cancel</button>
+      <button type="button" class="pb-confirm" id="hfSaveBtn">محفوظ کریں / Save</button>
+    </div>
+  </div>
+</div>
+<div class="hf-modal-overlay" id="colsModalOverlay">
+  <div class="hf-modal">
+    <h3 id="colsModalTitle">Select Print Columns</h3>
+    <div class="pb-sub">اس پینل کی فہرست کے پرنٹ میں کون سے کالم شامل ہوں، منتخب کریں (صرف Administrator کو نظر آتا ہے؛ ہر پینل کی اپنی الگ سیٹنگ ہے)۔<br>Choose which columns appear when this panel's list is printed (Administrator only; each panel has its own independent setting).</div>
+    <div id="colsCheckboxWrap"></div>
+    <div class="pb-actions">
+      <button type="button" class="pb-cancel" id="colsCancelBtn">Cancel</button>
+      <button type="button" class="pb-confirm" id="colsSaveBtn">محفوظ کریں / Save</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1575,6 +1639,16 @@ function normalizeData(data){
   data.dakIn = data.dakIn || [];
   data.dakOut = data.dakOut || [];
   data.tokens = data.tokens || [];
+  data.officeAddress = data.officeAddress || "";
+  data.officeContact = data.officeContact || "";
+  data.preparedByName = data.preparedByName || "";
+  data.preparedByDesignation = data.preparedByDesignation || "";
+  data.headerFooterConfig = data.headerFooterConfig || {};
+  /* Item 38: which columns of each panel's table print. Keyed by panel id (e.g. "cases"),
+     each value a dict of column-key -> boolean. A missing panel or missing column key means
+     "shown" (true) — same "absent = default" convention as headerFooterConfig above — so this
+     never needs a hardcoded per-panel column list here; see applyColumnPrintCss(). */
+  data.printColumns = data.printColumns || {};
   return data;
 }
 var STATE = normalizeData({});
@@ -1594,12 +1668,23 @@ function mergeArrayById(serverArr, localArr){
   (localArr||[]).forEach(function(item){ if(item && item.id!=null){ map[item.id]=item; if(!seen[item.id]){ order.push(item.id); seen[item.id]=true; } } });
   return order.map(function(id){ return map[id]; });
 }
+/* Dict fields (plain key->value objects, not id-keyed arrays): merge key-by-key so one
+   admin saving one panel's header/footer config can't wipe out another admin's concurrent
+   save of a different panel's config — same reasoning as the array merge above. */
+function mergeDict(serverObj, localObj){
+  var out = Object.assign({}, serverObj||{});
+  Object.keys(localObj||{}).forEach(function(k){ out[k] = localObj[k]; });
+  return out;
+}
 var MERGE_BY_ID_FIELDS = ["cases","hearings","results","employees","dakIn","dakOut","tokens"];
+var MERGE_DICT_FIELDS = ["headerFooterConfig","printColumns"];
 function mergeStates(serverState, localState){
   var merged = {};
   MERGE_BY_ID_FIELDS.forEach(function(f){ merged[f] = mergeArrayById(serverState[f], localState[f]); });
+  MERGE_DICT_FIELDS.forEach(function(f){ merged[f] = mergeDict(serverState[f], localState[f]); });
+  var handled = MERGE_BY_ID_FIELDS.concat(MERGE_DICT_FIELDS);
   Object.keys(localState).concat(Object.keys(serverState)).forEach(function(k){
-    if(MERGE_BY_ID_FIELDS.indexOf(k)===-1){ merged[k] = (localState[k]!==undefined)? localState[k] : serverState[k]; }
+    if(handled.indexOf(k)===-1){ merged[k] = (localState[k]!==undefined)? localState[k] : serverState[k]; }
   });
   return normalizeData(merged);
 }
@@ -1773,6 +1858,7 @@ function deleteCase(id){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
   var c = caseById(id);
   if(!c) return;
+  if(!isRecordOwner(c.createdBy)){ toast(t("perm_notOwner")); return; }
   var hearingCount = STATE.hearings.filter(function(h){ return h.caseId===id; }).length;
   var resultCount = STATE.results.filter(function(r){ return r.caseId===id; }).length;
   var warn = t("cases_deleteConfirm").replace("{caseNo}", c.caseNo);
@@ -1786,6 +1872,10 @@ function deleteCase(id){
 }
 document.getElementById("cs_saveBtn").addEventListener("click", function(){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
+  if(caseEditId){
+    var existingCase = caseById(caseEditId);
+    if(existingCase && !isRecordOwner(existingCase.createdBy)){ toast(t("perm_notOwner")); return; }
+  }
   var caseNo = document.getElementById("cs_caseNo").value.trim();
   if(!caseNo){ toast(t("cases_needCaseNo")); return; }
   var dup = STATE.cases.some(function(c){ return c.caseNo.trim().toLowerCase()===caseNo.toLowerCase() && c.id!==caseEditId; });
@@ -1874,14 +1964,14 @@ function renderCases(){
     var nh = computeNextHearingDate(c.id);
     var lr = computeLatestResult(c.id);
     return "<tr>"+
-      "<td>"+esc(c.caseNo)+"</td><td>"+esc(c.caseType)+"</td><td>"+esc(c.caseTitle)+"</td><td>"+esc(c.diaryNo)+"</td>"+
-      "<td>"+esc(c.filingDate)+"</td><td>"+esc(c.benchCourt)+"</td><td>"+esc(c.assignedEmployee)+"</td>"+
-      "<td><span class='tag "+statusTagClass(c.status)+"'>"+esc(statusLabel(c.status))+"</span></td>"+
-      "<td>"+esc(nh)+"</td><td>"+esc(lr? lr.resultCategory : "")+"</td>"+
+      "<td data-col='caseNo'>"+esc(c.caseNo)+"</td><td data-col='caseType'>"+esc(c.caseType)+"</td><td data-col='caseTitle'>"+esc(c.caseTitle)+"</td><td data-col='diaryNo'>"+esc(c.diaryNo)+"</td>"+
+      "<td data-col='filingDate'>"+esc(c.filingDate)+"</td><td data-col='benchCourt'>"+esc(c.benchCourt)+"</td><td data-col='assignedEmployee'>"+esc(c.assignedEmployee)+"</td>"+
+      "<td data-col='status'><span class='tag "+statusTagClass(c.status)+"'>"+esc(statusLabel(c.status))+"</span></td>"+
+      "<td data-col='nextDate'>"+esc(nh)+"</td><td data-col='lastResult'>"+esc(lr? lr.resultCategory : "")+"</td>"+
       "<td class='row-actions'>"+
         "<button class='btn ghost small view-only-btn' data-view='"+esc(c.id)+"'>"+esc(t("btn_view"))+"</button>"+
-        "<button class='btn secondary small' data-edit='"+esc(c.id)+"'>"+esc(t("btn_edit"))+"</button>"+
-        "<button class='btn danger small' data-del='"+esc(c.id)+"'>"+esc(t("btn_delete"))+"</button>"+
+        "<button class='btn secondary small' data-edit='"+esc(c.id)+"' data-owner='"+esc(c.createdBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
+        "<button class='btn danger small' data-del='"+esc(c.id)+"' data-owner='"+esc(c.createdBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
   }).join("") : "<tr class='empty-row'><td colspan='11'>"+esc(t("cases_noneFound"))+"</td></tr>";
   body.querySelectorAll("[data-view]").forEach(function(el){ el.addEventListener("click", function(){ openCaseDetail(el.dataset.view); }); });
@@ -1930,6 +2020,8 @@ function editHearing(id){
 }
 function deleteHearing(id){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
+  var hExisting = STATE.hearings.find(function(x){ return x.id===id; });
+  if(hExisting && !isRecordOwner(hExisting.enteredBy)){ toast(t("perm_notOwner")); return; }
   if(!confirm(t("hear_deleteConfirm"))) return;
   STATE.hearings = STATE.hearings.filter(function(x){ return x.id!==id; });
   saveData({hearings:[id]});
@@ -1940,6 +2032,10 @@ function deleteHearing(id){
 }
 document.getElementById("h_saveBtn").addEventListener("click", function(){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
+  if(hearingEditId){
+    var existingHearing = STATE.hearings.find(function(x){ return x.id===hearingEditId; });
+    if(existingHearing && !isRecordOwner(existingHearing.enteredBy)){ toast(t("perm_notOwner")); return; }
+  }
   var caseId = document.getElementById("h_caseId").value;
   var hearingDate = document.getElementById("h_hearingDate").value;
   if(!caseId){ toast(t("hear_needCase")); return; }
@@ -2020,11 +2116,11 @@ function renderHearings(){
   body.innerHTML = list.length? list.map(function(h){
     var c = caseById(h.caseId);
     return "<tr>"+
-      "<td>"+esc(c? c.caseNo : t("hear_caseNotFound"))+"</td><td>"+esc(h.hearingDate)+"</td><td>"+esc(h.benchCourt)+"</td><td>"+esc(h.employee)+"</td>"+
-      "<td style='white-space:normal;min-width:220px;'>"+esc(h.proceedings)+"</td><td>"+esc(h.nextDate)+"</td><td>"+esc(h.remarks)+"</td>"+
+      "<td data-col='caseNo'>"+esc(c? c.caseNo : t("hear_caseNotFound"))+"</td><td data-col='hearingDate'>"+esc(h.hearingDate)+"</td><td data-col='benchCourt'>"+esc(h.benchCourt)+"</td><td data-col='employee'>"+esc(h.employee)+"</td>"+
+      "<td data-col='proceedings' style='white-space:normal;min-width:220px;'>"+esc(h.proceedings)+"</td><td data-col='nextDate'>"+esc(h.nextDate)+"</td><td data-col='remarks'>"+esc(h.remarks)+"</td>"+
       "<td class='row-actions'>"+
-        "<button class='btn secondary small' data-edit='"+esc(h.id)+"'>"+esc(t("btn_edit"))+"</button>"+
-        "<button class='btn danger small' data-del='"+esc(h.id)+"'>"+esc(t("btn_delete"))+"</button>"+
+        "<button class='btn secondary small' data-edit='"+esc(h.id)+"' data-owner='"+esc(h.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
+        "<button class='btn danger small' data-del='"+esc(h.id)+"' data-owner='"+esc(h.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
   }).join("") : "<tr class='empty-row'><td colspan='8'>"+esc(t("hear_noneFound"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editHearing(el.dataset.edit); }); });
@@ -2066,6 +2162,8 @@ function editResult(id){
 }
 function deleteResult(id){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
+  var rExisting = STATE.results.find(function(x){ return x.id===id; });
+  if(rExisting && !isRecordOwner(rExisting.enteredBy)){ toast(t("perm_notOwner")); return; }
   if(!confirm(t("res_deleteConfirm"))) return;
   STATE.results = STATE.results.filter(function(x){ return x.id!==id; });
   saveData({results:[id]});
@@ -2075,6 +2173,10 @@ function deleteResult(id){
 }
 document.getElementById("rs_saveBtn").addEventListener("click", function(){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
+  if(resultEditId){
+    var existingResult = STATE.results.find(function(x){ return x.id===resultEditId; });
+    if(existingResult && !isRecordOwner(existingResult.enteredBy)){ toast(t("perm_notOwner")); return; }
+  }
   var caseId = document.getElementById("rs_caseId").value;
   var resultDate = document.getElementById("rs_resultDate").value;
   if(!caseId){ toast(t("res_needCase")); return; }
@@ -2151,11 +2253,11 @@ function renderResults(){
   body.innerHTML = list.length? list.map(function(r){
     var c = caseById(r.caseId);
     return "<tr>"+
-      "<td>"+esc(c? c.caseNo : t("hear_caseNotFound"))+"</td><td>"+esc(r.resultDate)+"</td><td>"+esc(r.resultCategory)+"</td>"+
-      "<td>"+esc(r.shortOrder)+"</td><td style='white-space:normal;min-width:220px;'>"+esc(r.detailedRemarks)+"</td>"+
+      "<td data-col='caseNo'>"+esc(c? c.caseNo : t("hear_caseNotFound"))+"</td><td data-col='resultDate'>"+esc(r.resultDate)+"</td><td data-col='resultCategory'>"+esc(r.resultCategory)+"</td>"+
+      "<td data-col='shortOrder'>"+esc(r.shortOrder)+"</td><td data-col='detailedRemarks' style='white-space:normal;min-width:220px;'>"+esc(r.detailedRemarks)+"</td>"+
       "<td class='row-actions'>"+
-        "<button class='btn secondary small' data-edit='"+esc(r.id)+"'>"+esc(t("btn_edit"))+"</button>"+
-        "<button class='btn danger small' data-del='"+esc(r.id)+"'>"+esc(t("btn_delete"))+"</button>"+
+        "<button class='btn secondary small' data-edit='"+esc(r.id)+"' data-owner='"+esc(r.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
+        "<button class='btn danger small' data-del='"+esc(r.id)+"' data-owner='"+esc(r.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
   }).join("") : "<tr class='empty-row'><td colspan='6'>"+esc(t("res_noneFound"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editResult(el.dataset.edit); }); });
@@ -2213,6 +2315,7 @@ function deleteEmployee(id){
   if(!canEdit("adminBranch")){ toast(t("perm_noAccess")); return; }
   var e = STATE.employees.find(function(x){ return x.id===id; });
   if(!e) return;
+  if(!isRecordOwner(e.enteredBy)){ toast(t("perm_notOwner")); return; }
   var assigned = computeAssignedCasesCount(e.name);
   var warn = t("emp_deleteConfirm").replace("{name}", e.name);
   if(assigned){ warn += " "+t("emp_deleteWarnAssigned").replace("{n}", assigned); }
@@ -2228,6 +2331,10 @@ function deleteEmployee(id){
 }
 document.getElementById("e_saveBtn").addEventListener("click", function(){
   if(!canEdit("adminBranch")){ toast(t("perm_noAccess")); return; }
+  if(employeeEditId){
+    var existingEmployee = STATE.employees.find(function(x){ return x.id===employeeEditId; });
+    if(existingEmployee && !isRecordOwner(existingEmployee.enteredBy)){ toast(t("perm_notOwner")); return; }
+  }
   var name = document.getElementById("e_name").value.trim();
   if(!name){ toast(t("emp_needName")); return; }
   var oldName = employeeEditId? (STATE.employees.find(function(x){return x.id===employeeEditId;})||{}).name : null;
@@ -2310,13 +2417,13 @@ function renderEmployees(){
   var body = document.getElementById("employeeTableBody");
   body.innerHTML = list.length? list.map(function(e){
     return "<tr>"+
-      "<td>"+esc(e.employeeId)+"</td><td>"+esc(e.name)+"</td><td>"+esc(e.designation)+"</td><td>"+esc(e.soName)+"</td><td>"+esc(e.section)+"</td>"+
-      "<td>"+esc(e.mobile)+"</td><td>"+esc(e.email)+"</td>"+
-      "<td><span class='tag "+(e.status==="Active"?"decided":"plain")+"'>"+esc(e.status==="Active"? t("emp_active") : t("emp_inactive"))+"</span></td>"+
-      "<td class='num'>"+computeAssignedCasesCount(e.name)+"</td>"+
+      "<td data-col='employeeId'>"+esc(e.employeeId)+"</td><td data-col='name'>"+esc(e.name)+"</td><td data-col='designation'>"+esc(e.designation)+"</td><td data-col='soName'>"+esc(e.soName)+"</td><td data-col='section'>"+esc(e.section)+"</td>"+
+      "<td data-col='mobile'>"+esc(e.mobile)+"</td><td data-col='email'>"+esc(e.email)+"</td>"+
+      "<td data-col='status'><span class='tag "+(e.status==="Active"?"decided":"plain")+"'>"+esc(e.status==="Active"? t("emp_active") : t("emp_inactive"))+"</span></td>"+
+      "<td data-col='assignedCases' class='num'>"+computeAssignedCasesCount(e.name)+"</td>"+
       "<td class='row-actions'>"+
-        "<button class='btn secondary small' data-edit='"+esc(e.id)+"'>"+esc(t("btn_edit"))+"</button>"+
-        "<button class='btn danger small' data-del='"+esc(e.id)+"'>"+esc(t("btn_delete"))+"</button>"+
+        "<button class='btn secondary small' data-edit='"+esc(e.id)+"' data-owner='"+esc(e.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
+        "<button class='btn danger small' data-del='"+esc(e.id)+"' data-owner='"+esc(e.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
   }).join("") : "<tr class='empty-row'><td colspan='10'>"+esc(t("emp_noneFound"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editEmployee(el.dataset.edit); }); });
@@ -2392,6 +2499,8 @@ function editDakIn(id){
 }
 function deleteDakIn(id){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
+  var diExisting = STATE.dakIn.find(function(x){ return x.id===id; });
+  if(diExisting && !isRecordOwner(diExisting.enteredBy)){ toast(t("perm_notOwner")); return; }
   if(!confirm(t("disp_deleteConfirmIn"))) return;
   STATE.dakIn = STATE.dakIn.filter(function(x){ return x.id!==id; });
   saveData({dakIn:[id]});
@@ -2400,6 +2509,10 @@ function deleteDakIn(id){
 }
 document.getElementById("di_saveBtn").addEventListener("click", function(){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
+  if(dakInEditId){
+    var existingDakIn = STATE.dakIn.find(function(x){ return x.id===dakInEditId; });
+    if(existingDakIn && !isRecordOwner(existingDakIn.enteredBy)){ toast(t("perm_notOwner")); return; }
+  }
   var receivedDate = document.getElementById("di_receivedDate").value;
   if(!receivedDate){ toast(t("disp_needReceivedDate")); return; }
   var diaryNo = document.getElementById("di_diaryNo").value.trim();
@@ -2486,12 +2599,12 @@ function renderDakIn(){
   var body = document.getElementById("dakInTableBody");
   body.innerHTML = list.length? list.map(function(d){
     return "<tr>"+
-      "<td>"+esc(d.diaryNo)+"</td><td>"+esc(d.receivedDate)+"</td><td>"+esc(d.receivedFrom)+"</td>"+
-      "<td>"+esc(d.theirRefNo)+"</td><td style='white-space:normal;min-width:180px;'>"+esc(d.subject)+"</td><td>"+esc(dakThroughLabel(d.receivedThrough))+"</td>"+
-      "<td>"+esc(d.markedTo)+"</td><td><span class='tag "+(d.status==="Pending"?"pending":d.status==="Replied"?"decided":"disposed")+"'>"+esc(dakStatusLabel(d.status))+"</span></td>"+
+      "<td data-col='diaryNo'>"+esc(d.diaryNo)+"</td><td data-col='receivedDate'>"+esc(d.receivedDate)+"</td><td data-col='receivedFrom'>"+esc(d.receivedFrom)+"</td>"+
+      "<td data-col='theirRefNo'>"+esc(d.theirRefNo)+"</td><td data-col='subject' style='white-space:normal;min-width:180px;'>"+esc(d.subject)+"</td><td data-col='receivedThrough'>"+esc(dakThroughLabel(d.receivedThrough))+"</td>"+
+      "<td data-col='markedTo'>"+esc(d.markedTo)+"</td><td data-col='status'><span class='tag "+(d.status==="Pending"?"pending":d.status==="Replied"?"decided":"disposed")+"'>"+esc(dakStatusLabel(d.status))+"</span></td>"+
       "<td class='row-actions'>"+
-        "<button class='btn secondary small' data-edit='"+esc(d.id)+"'>"+esc(t("btn_edit"))+"</button>"+
-        "<button class='btn danger small' data-del='"+esc(d.id)+"'>"+esc(t("btn_delete"))+"</button>"+
+        "<button class='btn secondary small' data-edit='"+esc(d.id)+"' data-owner='"+esc(d.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
+        "<button class='btn danger small' data-del='"+esc(d.id)+"' data-owner='"+esc(d.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
   }).join("") : "<tr class='empty-row'><td colspan='9'>"+esc(t("disp_noneFoundIn"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editDakIn(el.dataset.edit); }); });
@@ -2540,6 +2653,8 @@ function editDakOut(id){
 }
 function deleteDakOut(id){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
+  var doExisting = STATE.dakOut.find(function(x){ return x.id===id; });
+  if(doExisting && !isRecordOwner(doExisting.enteredBy)){ toast(t("perm_notOwner")); return; }
   if(!confirm(t("disp_deleteConfirmOut"))) return;
   STATE.dakOut = STATE.dakOut.filter(function(x){ return x.id!==id; });
   saveData({dakOut:[id]});
@@ -2548,6 +2663,10 @@ function deleteDakOut(id){
 }
 document.getElementById("do_saveBtn").addEventListener("click", function(){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
+  if(dakOutEditId){
+    var existingDakOut = STATE.dakOut.find(function(x){ return x.id===dakOutEditId; });
+    if(existingDakOut && !isRecordOwner(existingDakOut.enteredBy)){ toast(t("perm_notOwner")); return; }
+  }
   var dispatchDate = document.getElementById("do_dispatchDate").value;
   if(!dispatchDate){ toast(t("disp_needDispatchDate")); return; }
   var dispatchNo = document.getElementById("do_dispatchNo").value.trim();
@@ -2625,12 +2744,12 @@ function renderDakOut(){
   var body = document.getElementById("dakOutTableBody");
   body.innerHTML = list.length? list.map(function(d){
     return "<tr>"+
-      "<td>"+esc(d.dispatchNo)+"</td><td>"+esc(d.dispatchDate)+"</td><td>"+esc(d.sentTo)+"</td>"+
-      "<td>"+esc(d.ourRefNo)+"</td><td style='white-space:normal;min-width:180px;'>"+esc(d.subject)+"</td><td>"+esc(dakThroughLabel(d.sentThrough))+"</td>"+
-      "<td>"+esc(d.sentBy)+"</td><td><span class='tag "+(d.status==="Pending"?"pending":d.status==="Acknowledged"?"decided":"disposed")+"'>"+esc(dakStatusLabel(d.status))+"</span></td>"+
+      "<td data-col='dispatchNo'>"+esc(d.dispatchNo)+"</td><td data-col='dispatchDate'>"+esc(d.dispatchDate)+"</td><td data-col='sentTo'>"+esc(d.sentTo)+"</td>"+
+      "<td data-col='ourRefNo'>"+esc(d.ourRefNo)+"</td><td data-col='subject' style='white-space:normal;min-width:180px;'>"+esc(d.subject)+"</td><td data-col='sentThrough'>"+esc(dakThroughLabel(d.sentThrough))+"</td>"+
+      "<td data-col='sentBy'>"+esc(d.sentBy)+"</td><td data-col='status'><span class='tag "+(d.status==="Pending"?"pending":d.status==="Acknowledged"?"decided":"disposed")+"'>"+esc(dakStatusLabel(d.status))+"</span></td>"+
       "<td class='row-actions'>"+
-        "<button class='btn secondary small' data-edit='"+esc(d.id)+"'>"+esc(t("btn_edit"))+"</button>"+
-        "<button class='btn danger small' data-del='"+esc(d.id)+"'>"+esc(t("btn_delete"))+"</button>"+
+        "<button class='btn secondary small' data-edit='"+esc(d.id)+"' data-owner='"+esc(d.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
+        "<button class='btn danger small' data-del='"+esc(d.id)+"' data-owner='"+esc(d.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
   }).join("") : "<tr class='empty-row'><td colspan='9'>"+esc(t("disp_noneFoundOut"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editDakOut(el.dataset.edit); }); });
@@ -2705,6 +2824,8 @@ function editToken(id){
 }
 function deleteToken(id){
   if(!canEdit("accountsBranch")){ toast(t("perm_noAccess")); return; }
+  var tkExisting = STATE.tokens.find(function(x){ return x.id===id; });
+  if(tkExisting && !isRecordOwner(tkExisting.enteredBy)){ toast(t("perm_notOwner")); return; }
   if(!confirm(t("tok_deleteConfirm"))) return;
   STATE.tokens = STATE.tokens.filter(function(x){ return x.id!==id; });
   saveData({tokens:[id]});
@@ -2713,6 +2834,10 @@ function deleteToken(id){
 }
 document.getElementById("tk_saveBtn").addEventListener("click", function(){
   if(!canEdit("accountsBranch")){ toast(t("perm_noAccess")); return; }
+  if(tokenEditId){
+    var existingToken = STATE.tokens.find(function(x){ return x.id===tokenEditId; });
+    if(existingToken && !isRecordOwner(existingToken.enteredBy)){ toast(t("perm_notOwner")); return; }
+  }
   var submissionDate = document.getElementById("tk_submissionDate").value;
   if(!submissionDate){ toast(t("tok_needSubmissionDate")); return; }
   var tokenNo = document.getElementById("tk_tokenNo").value.trim();
@@ -2803,13 +2928,13 @@ function renderTokens(){
   var body = document.getElementById("tokenTableBody");
   body.innerHTML = list.length? list.map(function(tk){
     return "<tr>"+
-      "<td>"+esc(tk.billNo)+"</td><td>"+esc(tk.billType)+"</td><td class='num'>"+esc(tk.billAmount)+"</td>"+
-      "<td>"+esc(tk.submissionDate)+"</td><td>"+esc(tk.tokenNo)+"</td><td>"+esc(tk.submittedBy)+"</td>"+
-      "<td><span class='tag "+tokenStatusTagClass(tk.status)+"'>"+esc(tokenStatusLabel(tk.status))+"</span></td>"+
-      "<td>"+esc(tk.chequeNo)+"</td>"+
+      "<td data-col='billNo'>"+esc(tk.billNo)+"</td><td data-col='billType'>"+esc(tk.billType)+"</td><td data-col='billAmount' class='num'>"+esc(tk.billAmount)+"</td>"+
+      "<td data-col='submissionDate'>"+esc(tk.submissionDate)+"</td><td data-col='tokenNo'>"+esc(tk.tokenNo)+"</td><td data-col='submittedBy'>"+esc(tk.submittedBy)+"</td>"+
+      "<td data-col='status'><span class='tag "+tokenStatusTagClass(tk.status)+"'>"+esc(tokenStatusLabel(tk.status))+"</span></td>"+
+      "<td data-col='chequeNo'>"+esc(tk.chequeNo)+"</td>"+
       "<td class='row-actions'>"+
-        "<button class='btn secondary small' data-edit='"+esc(tk.id)+"'>"+esc(t("btn_edit"))+"</button>"+
-        "<button class='btn danger small' data-del='"+esc(tk.id)+"'>"+esc(t("btn_delete"))+"</button>"+
+        "<button class='btn secondary small' data-edit='"+esc(tk.id)+"' data-owner='"+esc(tk.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
+        "<button class='btn danger small' data-del='"+esc(tk.id)+"' data-owner='"+esc(tk.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
   }).join("") : "<tr class='empty-row'><td colspan='9'>"+esc(t("tok_noneFound"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editToken(el.dataset.edit); }); });
@@ -2857,6 +2982,7 @@ document.getElementById("d_closeBtn").addEventListener("click", function(){
 });
 document.getElementById("d_printBtn").addEventListener("click", function(){
   document.body.classList.add("detail-mode");
+  document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml("detail");
   window.print();
 });
 window.addEventListener("afterprint", function(){ document.body.classList.remove("detail-mode"); });
@@ -3041,7 +3167,10 @@ document.getElementById("r_exportBtn").addEventListener("click", function(){
 
   XLSX.writeFile(wb, "case_report_"+todayStr()+".xlsx");
 });
-document.getElementById("r_printBtn").addEventListener("click", function(){ window.print(); });
+document.getElementById("r_printBtn").addEventListener("click", function(){
+  document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
+  window.print();
+});
 
 /* ================= AUTH ================= */
 /* ================= THEME (per-user; follows the user's login across every camp-office system) ================= */
@@ -3082,6 +3211,15 @@ function canEdit(branch){
   if(isAdmin()) return true;
   return !!(CURRENT_USER && CURRENT_USER.permissions && CURRENT_USER.permissions[branch]);
 }
+/* ================= Item 20: data ownership =================
+   Confirmed design: an Administrator can always edit/delete anyone's record. Everyone else
+   (any non-admin, regardless of which branch permission they hold) can only edit/delete a
+   record they themselves originally entered (its createdBy/enteredBy). A record with no
+   owner recorded (legacy data from before this feature) stays editable by anyone with the
+   branch permission — ownership is never retroactively imposed on old data. */
+function isRecordOwner(ownerVal){
+  return isAdmin() || !ownerVal || !!(CURRENT_USER && ownerVal===CURRENT_USER.username);
+}
 var BRANCH_PANEL_SELECTORS = {
   adminBranch: ["#panel-employees"],
   recordBranch: ["#panel-cases", "#panel-hearings", "#panel-results", "#panel-dispatch"],
@@ -3097,13 +3235,15 @@ function applyPermissionLocks(){
         el.disabled = !allowed;
       });
       panel.querySelectorAll(".row-actions button[data-edit], .row-actions button[data-del]").forEach(function(el){
-        el.disabled = !allowed;
+        el.disabled = !allowed || !isRecordOwner(el.dataset.owner);
+        el.title = (allowed && !isRecordOwner(el.dataset.owner))? t("perm_notOwner") : "";
       });
       panel.querySelectorAll(".locked-hint").forEach(function(el){
         el.style.display = allowed? "none" : "block";
       });
     });
   });
+  applyColumnPrintCss();
 }
 
 function showSetupScreen(){
@@ -3126,7 +3266,148 @@ function updateUserBar(){
   roleEl.className = "role-badge" + (isAdmin()? " admin" : "");
   document.getElementById("usersNavBtn").style.display = isAdmin()? "flex" : "none";
   document.body.classList.toggle("guest-mode", !isAdmin());
+  document.getElementById("hfConfigBtn_panel").style.display = isAdmin()? "inline-flex":"none";
+  document.getElementById("hfConfigBtn_detail").style.display = isAdmin()? "inline-flex":"none";
+  document.getElementById("colsConfigBtn_panel").style.display = isAdmin()? "inline-flex":"none";
 }
+
+/* ================= Item 18: optional report header/footer fields =================
+   Two print flows here: the general panel print (globalPrintBtn/r_printBtn — whichever of
+   the 10 panels is currently active, keyed by panel id) and the individual case detail print
+   (d_printBtn — its own "detail" key). Unlike Case Notice, detail-mode does NOT hide the
+   general masthead, so both flows can safely share the one #pbPrintExtraFields div. */
+var PANEL_LABELS = {
+  dashboard:"Dashboard", cases:"Cases", hearings:"Hearings", results:"Results",
+  employees:"Employees", dispatch:"Dak In/Out", tokens:"Token Register",
+  reports:"Reports", users:"Users", help:"Help / Guide"
+};
+function currentPanelKey(){
+  var active = document.querySelector(".panel.active");
+  return active? active.id.replace("panel-",""): "";
+}
+function buildPrintExtraFieldsHtml(key){
+  var cfg = (STATE.headerFooterConfig && STATE.headerFooterConfig[key]) || {};
+  var rows = [];
+  if(cfg.dateDiary){
+    rows.push("<div class='hf-row'><span>Date / تاریخ: <bdi>"+esc(todayStr())+"</bdi></span><span>Diary No. / ڈائری نمبر: ______________</span></div>");
+  }
+  if(cfg.address && (STATE.officeAddress || STATE.officeContact)){
+    rows.push("<div class='hf-row'><span>Address / پتہ: <bdi>"+esc(STATE.officeAddress||"—")+"</bdi></span><span>Contact / رابطہ: <bdi>"+esc(STATE.officeContact||"—")+"</bdi></span></div>");
+  }
+  if(cfg.prepared && (STATE.preparedByName || STATE.preparedByDesignation)){
+    rows.push("<div class='hf-row'><span>Prepared by / تیار کردہ: <bdi>"+esc(STATE.preparedByName||"—")+"</bdi></span><span><bdi>"+esc(STATE.preparedByDesignation||"")+"</bdi></span></div>");
+  }
+  if(cfg.reference){
+    rows.push("<div class='hf-row'><span>Reference No. / حوالہ نمبر: ______________</span></div>");
+  }
+  return rows.join("");
+}
+function openHfModal(key, label){
+  if(!isAdmin()){ toast("Only an Administrator can change header/footer fields."); return; }
+  var cfg = (STATE.headerFooterConfig && STATE.headerFooterConfig[key]) || {};
+  document.getElementById("hfModalOverlay").dataset.key = key;
+  document.getElementById("hfModalTitle").textContent = "Header/Footer Fields — "+label;
+  document.getElementById("hfOfficeAddress").value = STATE.officeAddress || "";
+  document.getElementById("hfOfficeContact").value = STATE.officeContact || "";
+  document.getElementById("hfPreparedName").value = STATE.preparedByName || "";
+  document.getElementById("hfPreparedDesignation").value = STATE.preparedByDesignation || "";
+  document.getElementById("hfChkDateDiary").checked = !!cfg.dateDiary;
+  document.getElementById("hfChkAddress").checked = !!cfg.address;
+  document.getElementById("hfChkPrepared").checked = !!cfg.prepared;
+  document.getElementById("hfChkReference").checked = !!cfg.reference;
+  document.getElementById("hfModalOverlay").style.display = "flex";
+}
+document.getElementById("hfConfigBtn_panel").addEventListener("click", function(){
+  var key = currentPanelKey();
+  openHfModal(key, PANEL_LABELS[key]||key);
+});
+document.getElementById("hfConfigBtn_detail").addEventListener("click", function(){ openHfModal("detail", "Case Detail"); });
+document.getElementById("hfCancelBtn").addEventListener("click", function(){
+  document.getElementById("hfModalOverlay").style.display = "none";
+});
+document.getElementById("hfSaveBtn").addEventListener("click", function(){
+  if(!isAdmin()){ toast("Only an Administrator can change header/footer fields."); return; }
+  var key = document.getElementById("hfModalOverlay").dataset.key;
+  STATE.officeAddress = document.getElementById("hfOfficeAddress").value.trim();
+  STATE.officeContact = document.getElementById("hfOfficeContact").value.trim();
+  STATE.preparedByName = document.getElementById("hfPreparedName").value.trim();
+  STATE.preparedByDesignation = document.getElementById("hfPreparedDesignation").value.trim();
+  STATE.headerFooterConfig = STATE.headerFooterConfig || {};
+  STATE.headerFooterConfig[key] = {
+    dateDiary: document.getElementById("hfChkDateDiary").checked,
+    address: document.getElementById("hfChkAddress").checked,
+    prepared: document.getElementById("hfChkPrepared").checked,
+    reference: document.getElementById("hfChkReference").checked
+  };
+  saveData();
+  document.getElementById("hfModalOverlay").style.display = "none";
+  toast("Header/Footer settings saved for "+(PANEL_LABELS[key]||key)+".");
+});
+
+/* ================= Item 38: which columns of each panel's table print =================
+   Same idea as Item 37's Notice-field checkboxes (Case Notice System) and Item 38's Case List
+   columns (also Case Notice System), applied here across all 7 record panels via ONE shared
+   button/modal (colsConfigBtn_panel — mirrors hfConfigBtn_panel's currentPanelKey() pattern)
+   instead of one hardcoded column list per panel. The checkbox list is built by reading the
+   active panel's own <th data-col> attributes straight from the DOM, so no per-panel column
+   list needs to be hardcoded or kept in sync here — it's whatever that panel's table already
+   has. Excel/CSV exports are untouched by this setting on purpose, same reasoning as Case
+   Notice's Item 38 section: this only affects what fits on a printed page. */
+function collectPanelColumns(panelKey){
+  var table = document.querySelector("#panel-"+panelKey+" table");
+  if(!table) return [];
+  return Array.prototype.map.call(table.querySelectorAll("thead [data-col]"), function(th){
+    return {key: th.dataset.col, label: th.textContent.trim()};
+  });
+}
+function applyColumnPrintCss(){
+  var el = document.getElementById("colPrintStyle");
+  if(!el){ el = document.createElement("style"); el.id = "colPrintStyle"; document.head.appendChild(el); }
+  var rules = [];
+  Object.keys(STATE.printColumns||{}).forEach(function(panelKey){
+    var cfg = STATE.printColumns[panelKey]||{};
+    Object.keys(cfg).forEach(function(colKey){
+      if(cfg[colKey]===false) rules.push("#panel-"+panelKey+" [data-col='"+colKey+"']{display:none !important;}");
+    });
+  });
+  el.textContent = rules.length? ("@media print{ "+rules.join(" ")+" }") : "";
+}
+function renderColsCheckboxes(panelKey){
+  var wrap = document.getElementById("colsCheckboxWrap");
+  var cols = collectPanelColumns(panelKey);
+  var cfg = (STATE.printColumns && STATE.printColumns[panelKey]) || {};
+  wrap.innerHTML = cols.map(function(c){
+    var checked = cfg[c.key] !== false;
+    return "<div class='hf-check-row'><input type='checkbox' id='colChk_"+c.key+"' data-col-key='"+c.key+"'"+(checked? " checked":"")+"><label for='colChk_"+c.key+"'><span class='hf-check-label'>"+esc(c.label)+"</span></label></div>";
+  }).join("");
+}
+document.getElementById("colsConfigBtn_panel").addEventListener("click", function(){
+  if(!isAdmin()){ toast("Only an Administrator can change print columns."); return; }
+  var key = currentPanelKey();
+  var cols = collectPanelColumns(key);
+  if(!cols.length){ toast("This panel has no printable table."); return; }
+  document.getElementById("colsModalOverlay").dataset.key = key;
+  document.getElementById("colsModalTitle").textContent = "Select Print Columns — "+(PANEL_LABELS[key]||key);
+  renderColsCheckboxes(key);
+  document.getElementById("colsModalOverlay").style.display = "flex";
+});
+document.getElementById("colsCancelBtn").addEventListener("click", function(){
+  document.getElementById("colsModalOverlay").style.display = "none";
+});
+document.getElementById("colsSaveBtn").addEventListener("click", function(){
+  if(!isAdmin()){ toast("Only an Administrator can change print columns."); return; }
+  var key = document.getElementById("colsModalOverlay").dataset.key;
+  var cols = collectPanelColumns(key);
+  STATE.printColumns = STATE.printColumns || {};
+  var cfg = {};
+  cols.forEach(function(c){ cfg[c.key] = document.getElementById("colChk_"+c.key).checked; });
+  STATE.printColumns[key] = cfg;
+  applyColumnPrintCss();
+  saveData();
+  document.getElementById("colsModalOverlay").style.display = "none";
+  toast("Print column selection saved for "+(PANEL_LABELS[key]||key)+".");
+});
+
 function showAppScreen(){
   document.getElementById("authSetupScreen").style.display = "none";
   document.getElementById("authLoginScreen").style.display = "none";
@@ -3570,7 +3851,10 @@ function renderAll(){
 }
 
 document.getElementById("uiLangSelect").addEventListener("change", function(){ applyUILang(this.value); });
-document.getElementById("globalPrintBtn").addEventListener("click", function(){ window.print(); });
+document.getElementById("globalPrintBtn").addEventListener("click", function(){
+  document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
+  window.print();
+});
 
 /* Boot happens inside auth.onAuthStateChanged() above, once Firebase reports whether
    someone is already signed in. Until then both auth screens stay hidden (display:none
@@ -3668,6 +3952,7 @@ en: {
   usr_permHint:"Tick a branch to let a Guest add, edit, or delete in that branch's sections (Admin Branch → Employees; Record Branch → Cases, Hearings, Results, Dispatch; Accounts Branch → Token Register). These checkboxes apply only to Guests — an Administrator already has full access everywhere. A section without permission stays visible for viewing and printing; its Add/Edit/Delete controls are shown but disabled.",
   usr_permUpdated:"Permission updated.", usr_permUpdateFailed:"Could not update permission:", usr_fullAccess:"Full access",
   perm_noAccess:"You don't have permission to make changes in this section. Ask your Administrator to grant you access.",
+  perm_notOwner:"You can only edit or delete entries you entered yourself. Ask an Administrator if this needs to change.",
   perm_updatedLive:"Your account access was just updated by an Administrator.",
   branch_lockedHint_admin:"You have view-only access to this section. Ask your Administrator to grant Admin Branch permission to add, edit, or delete here.",
   branch_lockedHint_record:"You have view-only access to this section. Ask your Administrator to grant Record Branch permission to add, edit, or delete here.",
@@ -3878,6 +4163,7 @@ ur: {
   usr_permHint:"کسی برانچ پر ٹِک لگا کر آپ کسی Guest کو اس برانچ کے سیکشنز میں شامل، ترمیم یا حذف کرنے کی اجازت دے سکتے ہیں (ایڈمن برانچ → Employees؛ ریکارڈ برانچ → Cases, Hearings, Results, Dispatch؛ اکاؤنٹس برانچ → Token Register)۔ یہ چیک باکس صرف Guest صارفین پر لاگو ہوتے ہیں — Administrator کو ہر جگہ پہلے سے مکمل رسائی حاصل ہے۔ جس سیکشن کی اجازت نہ ہو وہاں دیکھنے اور پرنٹ کرنے کی سہولت برقرار رہتی ہے؛ اس کے Add/Edit/Delete بٹن نظر آئیں گے مگر disabled ہوں گے۔",
   usr_permUpdated:"اجازت اپڈیٹ ہو گئی۔", usr_permUpdateFailed:"اجازت اپڈیٹ نہیں ہو سکی:", usr_fullAccess:"مکمل رسائی",
   perm_noAccess:"اس سیکشن میں تبدیلی کرنے کی آپ کو اجازت نہیں ہے۔ اپنے Administrator سے رسائی کی درخواست کریں۔",
+  perm_notOwner:"آپ صرف اپنی داخل کردہ انٹری ہی ایڈٹ یا حذف کر سکتے ہیں۔ اگر یہ تبدیل ہونا ضروری ہے تو Administrator سے رابطہ کریں۔",
   perm_updatedLive:"آپ کے اکاؤنٹ کی رسائی ابھی ایڈمنسٹریٹر کی جانب سے تبدیل کی گئی ہے۔",
   branch_lockedHint_admin:"یہاں آپ کو صرف دیکھنے کی اجازت ہے۔ شامل، ترمیم یا حذف کرنے کے لیے اپنے Administrator سے Admin Branch کی اجازت طلب کریں۔",
   branch_lockedHint_record:"یہاں آپ کو صرف دیکھنے کی اجازت ہے۔ شامل، ترمیم یا حذف کرنے کے لیے اپنے Administrator سے Record Branch کی اجازت طلب کریں۔",
