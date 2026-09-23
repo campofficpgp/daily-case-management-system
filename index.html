@@ -3547,7 +3547,7 @@ auth.onAuthStateChanged(function(user){
     var firstLoad = true;
     if(unsubscribeUserDoc){ unsubscribeUserDoc(); unsubscribeUserDoc = null; }
     unsubscribeUserDoc = db.collection("users").doc(user.uid).onSnapshot(function(snap){
-      var role = snap.exists? (snap.data().role||"guest") : "guest";
+      var role = snap.exists? (snap.data().role || ((snap.data().roleV2==="admin" || snap.data().roleV2==="super_admin") ? "admin" : "guest")) : "guest";
       var theme = snap.exists? (snap.data().theme||null) : null;
       var signatureURL = snap.exists? (snap.data().signatureURL||"") : "";
       var rawPerms = snap.exists? (snap.data().permissions||{}) : {};
