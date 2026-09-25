@@ -704,6 +704,7 @@ html,body{overflow-x:hidden;}
     <button class="tab-btn active" data-tab="dashboard"><span class="dot"></span> <span data-i18n="nav_dashboard">Dashboard</span></button>
     <button class="tab-btn" data-tab="employees"><span class="dot"></span> <span data-i18n="nav_employees">Employees</span></button>
     <button class="tab-btn" data-tab="users" id="usersNavBtn" style="display:none;"><span class="dot"></span> <span data-i18n="nav_users">Users &amp; Access</span></button>
+    <button class="tab-btn" data-tab="fieldsmgr" id="fieldsMgrTabBtn" style="display:none;"><span class="dot"></span> <span>Fields Manager (Super Admin)</span></button>
 
     <div class="navnote" data-i18n="nav_recordBranch">Record Branch</div>
     <button class="tab-btn" data-tab="cases"><span class="dot"></span> <span data-i18n="nav_cases">Cases</span></button>
@@ -804,6 +805,7 @@ html,body{overflow-x:hidden;}
           </div>
           <div class="field" style="grid-column:span 3;"><label data-i18n="lbl_remarksOpt">Remarks (optional)</label><input type="text" id="cs_remarks"></div>
         </div>
+        <div class="grid cols-4" id="cs_customFieldsContainer" style="margin-top:12px;"></div>
         <div class="btnbar">
           <button class="btn" id="cs_saveBtn" data-i18n="cases_saveCase">Save case</button>
           <button class="btn ghost" id="cs_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
@@ -874,6 +876,7 @@ html,body{overflow-x:hidden;}
         <div class="grid cols-4" style="margin-top:12px;">
           <div class="field" style="grid-column:span 4;"><label data-i18n="lbl_remarksOpt">Remarks (optional)</label><input type="text" id="h_remarks"></div>
         </div>
+        <div class="grid cols-4" id="h_customFieldsContainer" style="margin-top:12px;"></div>
         <div class="btnbar">
           <button class="btn" id="h_saveBtn" data-i18n="hear_saveHearing">Save hearing</button>
           <button class="btn ghost" id="h_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
@@ -937,6 +940,7 @@ html,body{overflow-x:hidden;}
           <div class="field" style="grid-column:span 2;"><label data-i18n="lbl_shortOrder">Short Order / Result</label><input type="text" id="rs_shortOrder"></div>
           <div class="field" style="grid-column:span 2;"><label data-i18n="lbl_detailedRemarks">Detailed Remarks</label><textarea id="rs_detailedRemarks" rows="2"></textarea></div>
         </div>
+        <div class="grid cols-4" id="rs_customFieldsContainer" style="margin-top:12px;"></div>
         <div class="btnbar">
           <button class="btn" id="rs_saveBtn" data-i18n="res_saveResult">Save result</button>
           <button class="btn ghost" id="rs_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
@@ -1000,6 +1004,7 @@ html,body{overflow-x:hidden;}
           </div>
           <div class="field" style="grid-column:span 2;"><label data-i18n="lbl_remarksOpt">Remarks (optional)</label><input type="text" id="e_remarks"></div>
         </div>
+        <div class="grid cols-4" id="e_customFieldsContainer" style="margin-top:12px;"></div>
         <div class="btnbar">
           <button class="btn" id="e_saveBtn" data-i18n="btn_saveEmployee">Save employee</button>
           <button class="btn ghost" id="e_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
@@ -1026,6 +1031,66 @@ html,body{overflow-x:hidden;}
           </tr></thead>
           <tbody id="employeeTableBody"></tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- ================= FIELDS MANAGER (SUPER ADMIN ONLY) ================= -->
+    <section class="panel" id="panel-fieldsmgr">
+      <div class="panel-head">
+        <div>
+          <h2>Fields Manager — Super Admin only</h2>
+          <p>اوپر رجسٹر منتخب کریں، پھر اس میں نئے فیلڈز (خانے) شامل کر سکتے ہیں، ان کا نام بدل سکتے ہیں، ڈراپ ڈاؤن آپشنز تبدیل کر سکتے ہیں، یا انہیں حذف کر سکتے ہیں۔ غلطی ہونے پر "پچھلی حالت پر واپس" بٹن سے فوراً واپس آ سکتے ہیں۔<br>Pick a register above, then add, rename, edit (dropdown options), or delete custom data-entry fields for it. Built-in fields cannot be removed here, since the whole system depends on them — only fields you add yourself through this page can be changed or deleted. Dashboard, Reports, Users &amp; Access and Backup/Restore don't have their own custom fields, since none of them has a record form to attach a value to.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="grid cols-2">
+          <div class="field"><label>Register / رجسٹر</label>
+            <select id="fm_register">
+              <option value="cases">Cases</option>
+              <option value="hearings">Hearings</option>
+              <option value="results">Results</option>
+              <option value="employees">Employees</option>
+              <option value="dakIn">Dispatch — Dak In</option>
+              <option value="dakOut">Dispatch — Dak Out</option>
+              <option value="tokens">Token Register</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="btnbar" style="margin-bottom:10px;">
+          <button class="btn ghost" id="fm_undoBtn" disabled>↺ پچھلی حالت پر واپس / Undo last change</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field name / لیبل</th><th>Type</th><th>Dropdown options</th><th class="row-actions-th">Actions</th></tr></thead>
+            <tbody id="fm_fieldsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card entry-form">
+        <h3>نیا فیلڈ شامل کریں / Add a new field</h3>
+        <div class="grid cols-4">
+          <div class="field"><label>Field name / لیبل</label><input type="text" id="fm_newLabel" placeholder="e.g. Reference Code"></div>
+          <div class="field"><label>Type</label>
+            <select id="fm_newType">
+              <option value="text">Text</option>
+              <option value="number">Number</option>
+              <option value="date">Date</option>
+              <option value="dropdown">Dropdown</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:span 2;display:none;" id="fm_newOptionsWrap">
+            <label>Dropdown options (comma-separated) / آپشنز کوما سے الگ کریں</label>
+            <input type="text" id="fm_newOptions" placeholder="e.g. Pending, Approved, Rejected">
+          </div>
+        </div>
+        <div class="btnbar" style="margin-top:10px;">
+          <button class="btn" id="fm_addBtn">Add field</button>
+        </div>
       </div>
     </section>
 
@@ -1087,6 +1152,7 @@ html,body{overflow-x:hidden;}
             </div>
             <div class="field"><label data-i18n="lbl_remarksOpt">Remarks (optional)</label><input type="text" id="di_remarks"></div>
           </div>
+          <div class="grid cols-4" id="di_customFieldsContainer" style="margin-top:12px;"></div>
           <div class="btnbar">
             <button class="btn" id="di_saveBtn" data-i18n="disp_saveDakIn">Save incoming dak</button>
             <button class="btn ghost" id="di_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
@@ -1171,6 +1237,7 @@ html,body{overflow-x:hidden;}
             </div>
             <div class="field" style="grid-column:span 2;"><label data-i18n="lbl_remarksOpt">Remarks (optional)</label><input type="text" id="do_remarks"></div>
           </div>
+          <div class="grid cols-4" id="do_customFieldsContainer" style="margin-top:12px;"></div>
           <div class="btnbar">
             <button class="btn" id="do_saveBtn" data-i18n="disp_saveDakOut">Save outgoing dak</button>
             <button class="btn ghost" id="do_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
@@ -1259,6 +1326,7 @@ html,body{overflow-x:hidden;}
           <div class="field" style="grid-column:span 2;"><label data-i18n="tok_objectionRemarks">Objection Remarks</label><input type="text" id="tk_objectionRemarks"></div>
           <div class="field"><label data-i18n="lbl_remarksOpt">Remarks (optional)</label><input type="text" id="tk_remarks"></div>
         </div>
+        <div class="grid cols-4" id="tk_customFieldsContainer" style="margin-top:12px;"></div>
         <div class="btnbar">
           <button class="btn" id="tk_saveBtn" data-i18n="tok_saveToken">Save token entry</button>
           <button class="btn ghost" id="tk_cancelBtn" style="display:none;" data-i18n="btn_cancelEdit">Cancel edit</button>
@@ -1795,6 +1863,16 @@ function normalizeData(data){
      "shown" (true) — same "absent = default" convention as headerFooterConfig above — so this
      never needs a hardcoded per-panel column list here; see applyColumnPrintCss(). */
   data.printColumns = data.printColumns || {};
+  /* Fields Manager (Super Admin only): custom data-entry fields added on top of the
+     built-in columns of each register that has its own per-record entry form (Cases,
+     Hearings, Results, Employees, Dispatch Dak In, Dispatch Dak Out, Token Register),
+     plus a single one-step-back undo snapshot (which register it belongs to is tracked
+     alongside it, so undo in one register never touches another). */
+  data.customFieldDefs = data.customFieldDefs || {};
+  ["cases","hearings","results","employees","dakIn","dakOut","tokens"].forEach(function(k){
+    data.customFieldDefs[k] = data.customFieldDefs[k] || [];
+  });
+  data.customFieldDefsUndo = (data.customFieldDefsUndo !== undefined) ? data.customFieldDefsUndo : null;
   return data;
 }
 var STATE = normalizeData({});
@@ -1929,6 +2007,207 @@ function populateCaseSelect(sel, placeholderKey){
 }
 function caseById(id){ return STATE.cases.find(function(c){ return c.id===id; }); }
 
+/* ================= CUSTOM FIELDS (Fields Manager, Super Admin only) =================
+   Works the same way across every register that has its own per-record add/edit entry
+   form: Cases, Hearings, Results, Employees, Dispatch Dak In, Dispatch Dak Out and Token
+   Register. (Dashboard, Reports, Users & Access and Backup/Restore have no per-record
+   form to attach a custom field value to, so they're not in this list.) theadSelector is
+   a full CSS selector rather than just a panel id because Dispatch has two separate
+   tables (Dak In / Dak Out) inside one panel. Mirrors the same feature already shipped
+   in bill-register-system, field-for-field. */
+var CUSTOM_FIELD_REGISTERS = {
+  cases:     { label:"Cases",                theadSelector:"#panel-cases table thead tr",              formContainer:"cs_customFieldsContainer", baseCols:11, renderFn:function(){ renderCases(); } },
+  hearings:  { label:"Hearings",              theadSelector:"#panel-hearings table thead tr",           formContainer:"h_customFieldsContainer",  baseCols:8,  renderFn:function(){ renderHearings(); } },
+  results:   { label:"Results",               theadSelector:"#panel-results table thead tr",            formContainer:"rs_customFieldsContainer", baseCols:6,  renderFn:function(){ renderResults(); } },
+  employees: { label:"Employees",             theadSelector:"#panel-employees table thead tr",          formContainer:"e_customFieldsContainer",  baseCols:10, renderFn:function(){ renderEmployees(); } },
+  dakIn:     { label:"Dispatch — Dak In",      theadSelector:"#disp_subpanel_in table thead tr",         formContainer:"di_customFieldsContainer", baseCols:9,  renderFn:function(){ renderDakIn(); } },
+  dakOut:    { label:"Dispatch — Dak Out",     theadSelector:"#disp_subpanel_out table thead tr",        formContainer:"do_customFieldsContainer", baseCols:9,  renderFn:function(){ renderDakOut(); } },
+  tokens:    { label:"Token Register",         theadSelector:"#panel-tokens table thead tr",             formContainer:"tk_customFieldsContainer", baseCols:9,  renderFn:function(){ renderTokens(); } }
+};
+function customFieldDefs(registerKey){
+  STATE.customFieldDefs = STATE.customFieldDefs || {};
+  STATE.customFieldDefs[registerKey] = STATE.customFieldDefs[registerKey] || [];
+  return STATE.customFieldDefs[registerKey];
+}
+function fieldTypeLabel(type){
+  return {text:"Text", number:"Number", dropdown:"Dropdown", date:"Date"}[type] || type;
+}
+function customFieldColspan(registerKey){
+  return CUSTOM_FIELD_REGISTERS[registerKey].baseCols + customFieldDefs(registerKey).length;
+}
+function syncCustomHeaders(registerKey){
+  var cfg = CUSTOM_FIELD_REGISTERS[registerKey];
+  var theadRow = cfg && document.querySelector(cfg.theadSelector);
+  if(!theadRow) return;
+  theadRow.querySelectorAll("th[data-col^='cf_']").forEach(function(th){ th.remove(); });
+  var actionsTh = theadRow.querySelector(".row-actions-th");
+  customFieldDefs(registerKey).forEach(function(f){
+    var th = document.createElement("th");
+    th.setAttribute("data-col", f.key);
+    th.textContent = f.label;
+    if(actionsTh) theadRow.insertBefore(th, actionsTh); else theadRow.appendChild(th);
+  });
+}
+function customFieldTds(registerKey, rec){
+  return customFieldDefs(registerKey).map(function(f){
+    var val = (rec.customData && rec.customData[f.key]!=null) ? rec.customData[f.key] : "";
+    return "<td data-col='"+f.key+"'>"+esc(val)+"</td>";
+  }).join("");
+}
+function customFieldCsvHeaders(registerKey){
+  return customFieldDefs(registerKey).map(function(f){ return f.label; });
+}
+function customFieldCsvValues(registerKey, rec){
+  return customFieldDefs(registerKey).map(function(f){ return (rec.customData && rec.customData[f.key]!=null) ? rec.customData[f.key] : ""; });
+}
+function renderCustomFieldInputs(registerKey){
+  var cfg = CUSTOM_FIELD_REGISTERS[registerKey];
+  var wrap = cfg && document.getElementById(cfg.formContainer);
+  if(!wrap) return;
+  wrap.innerHTML = customFieldDefs(registerKey).map(function(f){
+    var inputHtml;
+    if(f.type==="dropdown"){
+      var opts = (f.options||[]).map(function(o){ return "<option value='"+esc(o)+"'>"+esc(o)+"</option>"; }).join("");
+      inputHtml = "<select id='cf_"+registerKey+"_"+f.key+"'><option value=''>—</option>"+opts+"</select>";
+    } else if(f.type==="number"){
+      inputHtml = "<input type='number' step='0.01' id='cf_"+registerKey+"_"+f.key+"'>";
+    } else if(f.type==="date"){
+      inputHtml = "<input type='date' id='cf_"+registerKey+"_"+f.key+"'>";
+    } else {
+      inputHtml = "<input type='text' id='cf_"+registerKey+"_"+f.key+"'>";
+    }
+    return "<div class='field'><label>"+esc(f.label)+"</label>"+inputHtml+"</div>";
+  }).join("");
+}
+function collectCustomFieldValues(registerKey){
+  var out = {};
+  customFieldDefs(registerKey).forEach(function(f){
+    var el = document.getElementById("cf_"+registerKey+"_"+f.key);
+    if(el) out[f.key] = el.value;
+  });
+  return out;
+}
+function populateCustomFieldInputs(registerKey, rec){
+  customFieldDefs(registerKey).forEach(function(f){
+    var el = document.getElementById("cf_"+registerKey+"_"+f.key);
+    if(el) el.value = (rec.customData && rec.customData[f.key]!=null) ? rec.customData[f.key] : "";
+  });
+}
+function snapshotCustomFieldDefsForUndo(registerKey){
+  STATE.customFieldDefsUndo = { registerKey: registerKey, defs: JSON.parse(JSON.stringify(customFieldDefs(registerKey))) };
+}
+function currentFmRegister(){
+  var sel = document.getElementById("fm_register");
+  var key = sel? sel.value : "cases";
+  return CUSTOM_FIELD_REGISTERS[key]? key : "cases";
+}
+function renderFieldsManager(){
+  var registerKey = currentFmRegister();
+  var undoBtn = document.getElementById("fm_undoBtn");
+  if(undoBtn) undoBtn.disabled = !(STATE.customFieldDefsUndo && STATE.customFieldDefsUndo.registerKey===registerKey);
+  var body = document.getElementById("fm_fieldsTableBody");
+  if(!body) return;
+  var defs = customFieldDefs(registerKey);
+  if(defs.length===0){
+    body.innerHTML = "<tr class='empty-row'><td colspan='4'>No custom fields yet for "+esc(CUSTOM_FIELD_REGISTERS[registerKey].label)+" — add one below.</td></tr>";
+  } else {
+    body.innerHTML = defs.map(function(f){
+      return "<tr>"+
+        "<td>"+esc(f.label)+"</td>"+
+        "<td>"+esc(fieldTypeLabel(f.type))+"</td>"+
+        "<td>"+(f.type==="dropdown"? esc((f.options||[]).join(", ")) : "—")+"</td>"+
+        "<td class='row-actions'>"+
+          "<button class='btn ghost small' data-fm-rename='"+f.key+"'>Rename</button>"+
+          (f.type==="dropdown"? "<button class='btn ghost small' data-fm-editopts='"+f.key+"'>Edit options</button>" : "")+
+          "<button class='btn danger small' data-fm-del='"+f.key+"'>Delete</button>"+
+        "</td></tr>";
+    }).join("");
+  }
+  body.querySelectorAll("[data-fm-rename]").forEach(function(el){ el.addEventListener("click", function(){ renameCustomField(registerKey, el.dataset.fmRename); }); });
+  body.querySelectorAll("[data-fm-editopts]").forEach(function(el){ el.addEventListener("click", function(){ editCustomFieldOptions(registerKey, el.dataset.fmEditopts); }); });
+  body.querySelectorAll("[data-fm-del]").forEach(function(el){ el.addEventListener("click", function(){ deleteCustomField(registerKey, el.dataset.fmDel); }); });
+}
+document.getElementById("fm_register").addEventListener("change", renderFieldsManager);
+document.getElementById("fm_newType").addEventListener("change", function(){
+  document.getElementById("fm_newOptionsWrap").style.display = (this.value==="dropdown")? "" : "none";
+});
+document.getElementById("fm_addBtn").addEventListener("click", function(){
+  if(!isSuperAdmin()){ toast("Only a Super Admin can manage fields."); return; }
+  var registerKey = currentFmRegister();
+  var label = document.getElementById("fm_newLabel").value.trim();
+  var type = document.getElementById("fm_newType").value;
+  if(!label){ toast("Field name is required."); return; }
+  var options = [];
+  if(type==="dropdown"){
+    options = document.getElementById("fm_newOptions").value.split(",").map(function(s){ return s.trim(); }).filter(Boolean);
+    if(options.length===0){ toast("Enter at least one dropdown option."); return; }
+  }
+  snapshotCustomFieldDefsForUndo(registerKey);
+  customFieldDefs(registerKey).push({ key: "cf_"+uid(), label: label, type: type, options: options });
+  saveData();
+  document.getElementById("fm_newLabel").value = "";
+  document.getElementById("fm_newOptions").value = "";
+  document.getElementById("fm_newType").value = "text";
+  document.getElementById("fm_newOptionsWrap").style.display = "none";
+  renderFieldsManager();
+  CUSTOM_FIELD_REGISTERS[registerKey].renderFn();
+  toast("Field added to "+CUSTOM_FIELD_REGISTERS[registerKey].label+".");
+});
+function renameCustomField(registerKey, key){
+  if(!isSuperAdmin()){ toast("Only a Super Admin can manage fields."); return; }
+  var f = customFieldDefs(registerKey).find(function(x){ return x.key===key; });
+  if(!f) return;
+  var newLabel = prompt("New name for this field:", f.label);
+  if(newLabel===null) return;
+  newLabel = newLabel.trim();
+  if(!newLabel){ toast("Field name cannot be empty."); return; }
+  snapshotCustomFieldDefsForUndo(registerKey);
+  f.label = newLabel;
+  saveData();
+  renderFieldsManager();
+  CUSTOM_FIELD_REGISTERS[registerKey].renderFn();
+  toast("Field renamed.");
+}
+function editCustomFieldOptions(registerKey, key){
+  if(!isSuperAdmin()){ toast("Only a Super Admin can manage fields."); return; }
+  var f = customFieldDefs(registerKey).find(function(x){ return x.key===key; });
+  if(!f) return;
+  var current = (f.options||[]).join(", ");
+  var newOpts = prompt("Dropdown options (comma-separated):", current);
+  if(newOpts===null) return;
+  var options = newOpts.split(",").map(function(s){ return s.trim(); }).filter(Boolean);
+  if(options.length===0){ toast("Enter at least one dropdown option."); return; }
+  snapshotCustomFieldDefsForUndo(registerKey);
+  f.options = options;
+  saveData();
+  renderFieldsManager();
+  CUSTOM_FIELD_REGISTERS[registerKey].renderFn();
+  toast("Options updated.");
+}
+function deleteCustomField(registerKey, key){
+  if(!isSuperAdmin()){ toast("Only a Super Admin can manage fields."); return; }
+  var f = customFieldDefs(registerKey).find(function(x){ return x.key===key; });
+  if(!f) return;
+  if(!confirm('Delete the field "'+f.label+'"? Existing entries will keep their data hidden (it comes back if you Undo).')) return;
+  snapshotCustomFieldDefsForUndo(registerKey);
+  STATE.customFieldDefs[registerKey] = customFieldDefs(registerKey).filter(function(x){ return x.key!==key; });
+  saveData();
+  renderFieldsManager();
+  CUSTOM_FIELD_REGISTERS[registerKey].renderFn();
+  toast("Field deleted.");
+}
+document.getElementById("fm_undoBtn").addEventListener("click", function(){
+  if(!isSuperAdmin()){ toast("Only a Super Admin can manage fields."); return; }
+  var registerKey = currentFmRegister();
+  if(!STATE.customFieldDefsUndo || STATE.customFieldDefsUndo.registerKey!==registerKey) return;
+  STATE.customFieldDefs[registerKey] = STATE.customFieldDefsUndo.defs;
+  STATE.customFieldDefsUndo = null;
+  saveData();
+  renderFieldsManager();
+  CUSTOM_FIELD_REGISTERS[registerKey].renderFn();
+  toast("Reverted to the previous state.");
+});
+
 /* ================= CASES MODULE ================= */
 var caseEditId = null;
 
@@ -1978,6 +2257,7 @@ function resetCaseForm(){
   document.getElementById("cs_saveBtn").textContent = t("cases_saveCase");
   document.getElementById("cs_cancelBtn").style.display = "none";
   var lh = document.getElementById("cs_lastEditedHint"); if(lh) lh.textContent = "";
+  renderCustomFieldInputs("cases");
 }
 function editCase(id){
   var c = caseById(id);
@@ -1998,6 +2278,8 @@ function editCase(id){
   document.getElementById("cs_cancelBtn").style.display = "inline-block";
   var lh = document.getElementById("cs_lastEditedHint");
   if(lh) lh.textContent = c.lastEditedBy? t("lbl_lastEditedBy").replace("{who}", c.lastEditedBy).replace("{when}", formatDateTime(c.lastEditedAt)) : "";
+  renderCustomFieldInputs("cases");
+  populateCustomFieldInputs("cases", c);
   document.getElementById("panel-cases").scrollIntoView({behavior:"smooth", block:"start"});
 }
 function deleteCase(id){
@@ -2037,6 +2319,7 @@ document.getElementById("cs_saveBtn").addEventListener("click", function(){
     assignedEmployee: document.getElementById("cs_assignedEmployee").value,
     status: document.getElementById("cs_status").value,
     remarks: document.getElementById("cs_remarks").value.trim(),
+    customData: collectCustomFieldValues("cases"),
     createdBy: (CURRENT_USER? CURRENT_USER.username : ""),
     createdOn: nowIso(),
     lastEditedBy: (CURRENT_USER? CURRENT_USER.username : ""),
@@ -2092,11 +2375,11 @@ document.getElementById("csf_clear").addEventListener("click", function(){
 });
 document.getElementById("cs_exportBtn").addEventListener("click", function(){
   var list = filteredCases();
-  var rows = [["Case No","Type","Title","Diary No","Filing Date","Bench/Court","Assigned Employee","Status","Next Hearing","Latest Result","Remarks"]];
+  var rows = [["Case No","Type","Title","Diary No","Filing Date","Bench/Court","Assigned Employee","Status","Next Hearing","Latest Result","Remarks"].concat(customFieldCsvHeaders("cases"))];
   list.forEach(function(c){
     var nh = computeNextHearingDate(c.id);
     var lr = computeLatestResult(c.id);
-    rows.push([c.caseNo,c.caseType,c.caseTitle,c.diaryNo,c.filingDate,c.benchCourt,c.assignedEmployee,c.status,nh,(lr?lr.resultCategory:""),c.remarks]);
+    rows.push([c.caseNo,c.caseType,c.caseTitle,c.diaryNo,c.filingDate,c.benchCourt,c.assignedEmployee,c.status,nh,(lr?lr.resultCategory:""),c.remarks].concat(customFieldCsvValues("cases", c)));
   });
   downloadCSV("cases.csv", rows);
 });
@@ -2104,6 +2387,8 @@ document.getElementById("cs_exportBtn").addEventListener("click", function(){
 function renderCases(){
   populateCaseFilterSelects();
   populateSelectOrAdd("cs_benchCourt", benchCourtMasterValues(), t("opt_selectBenchCourt"));
+  renderCustomFieldInputs("cases");
+  syncCustomHeaders("cases");
   var list = filteredCases();
   var body = document.getElementById("caseTableBody");
   body.innerHTML = list.length? list.map(function(c){
@@ -2114,12 +2399,13 @@ function renderCases(){
       "<td data-col='filingDate'>"+esc(c.filingDate)+"</td><td data-col='benchCourt'>"+esc(c.benchCourt)+"</td><td data-col='assignedEmployee'>"+esc(c.assignedEmployee)+"</td>"+
       "<td data-col='status'><span class='tag "+statusTagClass(c.status)+"'>"+esc(statusLabel(c.status))+"</span></td>"+
       "<td data-col='nextDate'>"+esc(nh)+"</td><td data-col='lastResult'>"+esc(lr? lr.resultCategory : "")+"</td>"+
+      customFieldTds("cases", c)+
       "<td class='row-actions'>"+
         "<button class='btn ghost small view-only-btn' data-view='"+esc(c.id)+"'>"+esc(t("btn_view"))+"</button>"+
         "<button class='btn secondary small' data-edit='"+esc(c.id)+"' data-owner='"+esc(c.createdBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
         "<button class='btn danger small' data-del='"+esc(c.id)+"' data-owner='"+esc(c.createdBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
-  }).join("") : "<tr class='empty-row'><td colspan='11'>"+esc(t("cases_noneFound"))+"</td></tr>";
+  }).join("") : "<tr class='empty-row'><td colspan='"+customFieldColspan("cases")+"'>"+esc(t("cases_noneFound"))+"</td></tr>";
   body.querySelectorAll("[data-view]").forEach(function(el){ el.addEventListener("click", function(){ openCaseDetail(el.dataset.view); }); });
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editCase(el.dataset.edit); }); });
   body.querySelectorAll("[data-del]").forEach(function(el){ el.addEventListener("click", function(){ deleteCase(el.dataset.del); }); });
@@ -2144,6 +2430,7 @@ function resetHearingForm(){
   document.getElementById("h_saveBtn").textContent = t("hear_saveHearing");
   document.getElementById("h_cancelBtn").style.display = "none";
   var lh = document.getElementById("h_lastEditedHint"); if(lh) lh.textContent = "";
+  renderCustomFieldInputs("hearings");
 }
 function editHearing(id){
   var h = STATE.hearings.find(function(x){ return x.id===id; });
@@ -2162,6 +2449,8 @@ function editHearing(id){
   document.getElementById("h_cancelBtn").style.display = "inline-block";
   var lh = document.getElementById("h_lastEditedHint");
   if(lh) lh.textContent = h.lastEditedBy? t("lbl_lastEditedBy").replace("{who}", h.lastEditedBy).replace("{when}", formatDateTime(h.lastEditedAt)) : "";
+  renderCustomFieldInputs("hearings");
+  populateCustomFieldInputs("hearings", h);
   document.getElementById("panel-hearings").scrollIntoView({behavior:"smooth", block:"start"});
 }
 function deleteHearing(id){
@@ -2195,6 +2484,7 @@ document.getElementById("h_saveBtn").addEventListener("click", function(){
     nextDate: document.getElementById("h_nextDate").value,
     proceedings: document.getElementById("h_proceedings").value.trim(),
     remarks: document.getElementById("h_remarks").value.trim(),
+    customData: collectCustomFieldValues("hearings"),
     enteredBy: (CURRENT_USER? CURRENT_USER.username : ""),
     entryDateTime: nowIso(),
     lastEditedBy: (CURRENT_USER? CURRENT_USER.username : ""),
@@ -2247,16 +2537,18 @@ document.getElementById("hf_clear").addEventListener("click", function(){
 });
 document.getElementById("h_exportBtn").addEventListener("click", function(){
   var list = filteredHearings();
-  var rows = [["Case No","Hearing Date","Bench/Court","Employee","Proceedings/Order","Next Date","Remarks"]];
+  var rows = [["Case No","Hearing Date","Bench/Court","Employee","Proceedings/Order","Next Date","Remarks"].concat(customFieldCsvHeaders("hearings"))];
   list.forEach(function(h){
     var c = caseById(h.caseId);
-    rows.push([c?c.caseNo:"",h.hearingDate,h.benchCourt,h.employee,h.proceedings,h.nextDate,h.remarks]);
+    rows.push([c?c.caseNo:"",h.hearingDate,h.benchCourt,h.employee,h.proceedings,h.nextDate,h.remarks].concat(customFieldCsvValues("hearings", h)));
   });
   downloadCSV("hearings.csv", rows);
 });
 
 function renderHearings(){
   populateHearingSelects();
+  renderCustomFieldInputs("hearings");
+  syncCustomHeaders("hearings");
   var list = filteredHearings();
   var body = document.getElementById("hearingTableBody");
   body.innerHTML = list.length? list.map(function(h){
@@ -2264,11 +2556,12 @@ function renderHearings(){
     return "<tr>"+
       "<td data-col='caseNo'>"+esc(c? c.caseNo : t("hear_caseNotFound"))+"</td><td data-col='hearingDate'>"+esc(h.hearingDate)+"</td><td data-col='benchCourt'>"+esc(h.benchCourt)+"</td><td data-col='employee'>"+esc(h.employee)+"</td>"+
       "<td data-col='proceedings' style='white-space:normal;min-width:220px;'>"+esc(h.proceedings)+"</td><td data-col='nextDate'>"+esc(h.nextDate)+"</td><td data-col='remarks'>"+esc(h.remarks)+"</td>"+
+      customFieldTds("hearings", h)+
       "<td class='row-actions'>"+
         "<button class='btn secondary small' data-edit='"+esc(h.id)+"' data-owner='"+esc(h.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
         "<button class='btn danger small' data-del='"+esc(h.id)+"' data-owner='"+esc(h.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
-  }).join("") : "<tr class='empty-row'><td colspan='8'>"+esc(t("hear_noneFound"))+"</td></tr>";
+  }).join("") : "<tr class='empty-row'><td colspan='"+customFieldColspan("hearings")+"'>"+esc(t("hear_noneFound"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editHearing(el.dataset.edit); }); });
   body.querySelectorAll("[data-del]").forEach(function(el){ el.addEventListener("click", function(){ deleteHearing(el.dataset.del); }); });
   document.getElementById("hearingCount").textContent = list.length+" "+(list.length===1? t("hear_unitSingular") : t("hear_unitPlural"));
@@ -2289,6 +2582,7 @@ function resetResultForm(){
   document.getElementById("rs_saveBtn").textContent = t("res_saveResult");
   document.getElementById("rs_cancelBtn").style.display = "none";
   var lh = document.getElementById("rs_lastEditedHint"); if(lh) lh.textContent = "";
+  renderCustomFieldInputs("results");
 }
 function editResult(id){
   var r = STATE.results.find(function(x){ return x.id===id; });
@@ -2304,6 +2598,8 @@ function editResult(id){
   document.getElementById("rs_cancelBtn").style.display = "inline-block";
   var lh = document.getElementById("rs_lastEditedHint");
   if(lh) lh.textContent = r.lastEditedBy? t("lbl_lastEditedBy").replace("{who}", r.lastEditedBy).replace("{when}", formatDateTime(r.lastEditedAt)) : "";
+  renderCustomFieldInputs("results");
+  populateCustomFieldInputs("results", r);
   document.getElementById("panel-results").scrollIntoView({behavior:"smooth", block:"start"});
 }
 function deleteResult(id){
@@ -2334,6 +2630,7 @@ document.getElementById("rs_saveBtn").addEventListener("click", function(){
     resultCategory: document.getElementById("rs_resultCategory").value,
     shortOrder: document.getElementById("rs_shortOrder").value.trim(),
     detailedRemarks: document.getElementById("rs_detailedRemarks").value.trim(),
+    customData: collectCustomFieldValues("results"),
     enteredBy: (CURRENT_USER? CURRENT_USER.username : ""),
     entryDateTime: nowIso(),
     lastEditedBy: (CURRENT_USER? CURRENT_USER.username : ""),
@@ -2384,16 +2681,18 @@ document.getElementById("rsf_clear").addEventListener("click", function(){
 });
 document.getElementById("rs_exportBtn").addEventListener("click", function(){
   var list = filteredResults();
-  var rows = [["Case No","Result Date","Category","Short Order","Detailed Remarks"]];
+  var rows = [["Case No","Result Date","Category","Short Order","Detailed Remarks"].concat(customFieldCsvHeaders("results"))];
   list.forEach(function(r){
     var c = caseById(r.caseId);
-    rows.push([c?c.caseNo:"",r.resultDate,r.resultCategory,r.shortOrder,r.detailedRemarks]);
+    rows.push([c?c.caseNo:"",r.resultDate,r.resultCategory,r.shortOrder,r.detailedRemarks].concat(customFieldCsvValues("results", r)));
   });
   downloadCSV("results.csv", rows);
 });
 
 function renderResults(){
   populateResultSelects();
+  renderCustomFieldInputs("results");
+  syncCustomHeaders("results");
   var list = filteredResults();
   var body = document.getElementById("resultTableBody");
   body.innerHTML = list.length? list.map(function(r){
@@ -2401,11 +2700,12 @@ function renderResults(){
     return "<tr>"+
       "<td data-col='caseNo'>"+esc(c? c.caseNo : t("hear_caseNotFound"))+"</td><td data-col='resultDate'>"+esc(r.resultDate)+"</td><td data-col='resultCategory'>"+esc(r.resultCategory)+"</td>"+
       "<td data-col='shortOrder'>"+esc(r.shortOrder)+"</td><td data-col='detailedRemarks' style='white-space:normal;min-width:220px;'>"+esc(r.detailedRemarks)+"</td>"+
+      customFieldTds("results", r)+
       "<td class='row-actions'>"+
         "<button class='btn secondary small' data-edit='"+esc(r.id)+"' data-owner='"+esc(r.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
         "<button class='btn danger small' data-del='"+esc(r.id)+"' data-owner='"+esc(r.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
-  }).join("") : "<tr class='empty-row'><td colspan='6'>"+esc(t("res_noneFound"))+"</td></tr>";
+  }).join("") : "<tr class='empty-row'><td colspan='"+customFieldColspan("results")+"'>"+esc(t("res_noneFound"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editResult(el.dataset.edit); }); });
   body.querySelectorAll("[data-del]").forEach(function(el){ el.addEventListener("click", function(){ deleteResult(el.dataset.del); }); });
   document.getElementById("resultCount").textContent = list.length+" "+(list.length===1? t("res_unitSingular") : t("res_unitPlural"));
@@ -2435,6 +2735,7 @@ function resetEmployeeForm(){
   document.getElementById("e_saveBtn").textContent = t("btn_saveEmployee");
   document.getElementById("e_cancelBtn").style.display = "none";
   var lh = document.getElementById("e_lastEditedHint"); if(lh) lh.textContent = "";
+  renderCustomFieldInputs("employees");
 }
 function editEmployee(id){
   var e = STATE.employees.find(function(x){ return x.id===id; });
@@ -2455,6 +2756,8 @@ function editEmployee(id){
   document.getElementById("e_cancelBtn").style.display = "inline-block";
   var lh = document.getElementById("e_lastEditedHint");
   if(lh) lh.textContent = e.lastEditedBy? t("lbl_lastEditedBy").replace("{who}", e.lastEditedBy).replace("{when}", formatDateTime(e.lastEditedAt)) : "";
+  renderCustomFieldInputs("employees");
+  populateCustomFieldInputs("employees", e);
   document.getElementById("panel-employees").scrollIntoView({behavior:"smooth", block:"start"});
 }
 function deleteEmployee(id){
@@ -2496,6 +2799,7 @@ document.getElementById("e_saveBtn").addEventListener("click", function(){
     joiningDate: document.getElementById("e_joiningDate").value,
     status: document.getElementById("e_status").value,
     remarks: document.getElementById("e_remarks").value.trim(),
+    customData: collectCustomFieldValues("employees"),
     enteredBy: (CURRENT_USER? CURRENT_USER.username : ""),
     entryDateTime: nowIso(),
     lastEditedBy: (CURRENT_USER? CURRENT_USER.username : ""),
@@ -2552,13 +2856,15 @@ document.getElementById("ef_clear").addEventListener("click", function(){
 });
 document.getElementById("e_exportBtn").addEventListener("click", function(){
   var list = filteredEmployees();
-  var rows = [["Employee ID","Name","Designation","Son of","Section","Mobile No","Office Email","Joining Date","Status","Assigned Cases","Remarks"]];
-  list.forEach(function(e){ rows.push([e.employeeId,e.name,e.designation,e.soName,e.section,e.mobile,e.email,e.joiningDate,e.status,computeAssignedCasesCount(e.name),e.remarks]); });
+  var rows = [["Employee ID","Name","Designation","Son of","Section","Mobile No","Office Email","Joining Date","Status","Assigned Cases","Remarks"].concat(customFieldCsvHeaders("employees"))];
+  list.forEach(function(e){ rows.push([e.employeeId,e.name,e.designation,e.soName,e.section,e.mobile,e.email,e.joiningDate,e.status,computeAssignedCasesCount(e.name),e.remarks].concat(customFieldCsvValues("employees", e))); });
   downloadCSV("employees.csv", rows);
 });
 
 function renderEmployees(){
   populateEmployeeFilterSelects();
+  renderCustomFieldInputs("employees");
+  syncCustomHeaders("employees");
   var list = filteredEmployees();
   var body = document.getElementById("employeeTableBody");
   body.innerHTML = list.length? list.map(function(e){
@@ -2567,11 +2873,12 @@ function renderEmployees(){
       "<td data-col='mobile'>"+esc(e.mobile)+"</td><td data-col='email'>"+esc(e.email)+"</td>"+
       "<td data-col='status'><span class='tag "+(e.status==="Active"?"decided":"plain")+"'>"+esc(e.status==="Active"? t("emp_active") : t("emp_inactive"))+"</span></td>"+
       "<td data-col='assignedCases' class='num'>"+computeAssignedCasesCount(e.name)+"</td>"+
+      customFieldTds("employees", e)+
       "<td class='row-actions'>"+
         "<button class='btn secondary small' data-edit='"+esc(e.id)+"' data-owner='"+esc(e.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
         "<button class='btn danger small' data-del='"+esc(e.id)+"' data-owner='"+esc(e.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
-  }).join("") : "<tr class='empty-row'><td colspan='10'>"+esc(t("emp_noneFound"))+"</td></tr>";
+  }).join("") : "<tr class='empty-row'><td colspan='"+customFieldColspan("employees")+"'>"+esc(t("emp_noneFound"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editEmployee(el.dataset.edit); }); });
   body.querySelectorAll("[data-del]").forEach(function(el){ el.addEventListener("click", function(){ deleteEmployee(el.dataset.del); }); });
   document.getElementById("employeeCount").textContent = list.length+" "+(list.length===1? t("emp_unitSingular") : t("emp_unitPlural"));
@@ -2620,6 +2927,7 @@ function resetDakInForm(){
   document.getElementById("di_saveBtn").textContent = t("disp_saveDakIn");
   document.getElementById("di_cancelBtn").style.display = "none";
   var lh = document.getElementById("di_lastEditedHint"); if(lh) lh.textContent = "";
+  renderCustomFieldInputs("dakIn");
 }
 function editDakIn(id){
   var d = STATE.dakIn.find(function(x){ return x.id===id; });
@@ -2641,6 +2949,8 @@ function editDakIn(id){
   document.getElementById("di_cancelBtn").style.display = "inline-block";
   var lh = document.getElementById("di_lastEditedHint");
   if(lh) lh.textContent = d.lastEditedBy? t("lbl_lastEditedBy").replace("{who}", d.lastEditedBy).replace("{when}", formatDateTime(d.lastEditedAt)) : "";
+  renderCustomFieldInputs("dakIn");
+  populateCustomFieldInputs("dakIn", d);
   document.getElementById("disp_subpanel_in").scrollIntoView({behavior:"smooth", block:"start"});
 }
 function deleteDakIn(id){
@@ -2678,6 +2988,7 @@ document.getElementById("di_saveBtn").addEventListener("click", function(){
     markedTo: document.getElementById("di_markedTo").value,
     status: document.getElementById("di_status").value,
     remarks: document.getElementById("di_remarks").value.trim(),
+    customData: collectCustomFieldValues("dakIn"),
     enteredBy: (CURRENT_USER? CURRENT_USER.username : ""),
     entryDateTime: nowIso(),
     lastEditedBy: (CURRENT_USER? CURRENT_USER.username : ""),
@@ -2724,8 +3035,8 @@ document.getElementById("dif_clear").addEventListener("click", function(){
 });
 document.getElementById("di_exportBtn").addEventListener("click", function(){
   var list = filteredDakIn();
-  var rows = [["Diary No","Received Date","Received From","Their Ref No","Their Ref Date","Subject","Received Through","Marked To","Status","Remarks"]];
-  list.forEach(function(d){ rows.push([d.diaryNo,d.receivedDate,d.receivedFrom,d.theirRefNo,d.theirRefDate,d.subject,d.receivedThrough,d.markedTo,d.status,d.remarks]); });
+  var rows = [["Diary No","Received Date","Received From","Their Ref No","Their Ref Date","Subject","Received Through","Marked To","Status","Remarks"].concat(customFieldCsvHeaders("dakIn"))];
+  list.forEach(function(d){ rows.push([d.diaryNo,d.receivedDate,d.receivedFrom,d.theirRefNo,d.theirRefDate,d.subject,d.receivedThrough,d.markedTo,d.status,d.remarks].concat(customFieldCsvValues("dakIn", d))); });
   downloadCSV("dak_in.csv", rows);
 });
 function dakStatusLabel(status){
@@ -2741,6 +3052,8 @@ function renderDakIn(){
   populateDakInFilterSelects();
   populateActiveEmployeeSelect(document.getElementById("di_markedTo"), "opt_none");
   populateSelectOrAdd("di_receivedFrom", STATE.dakIn.map(function(d){ return d.receivedFrom; }), t("opt_selectReceivedFrom"));
+  renderCustomFieldInputs("dakIn");
+  syncCustomHeaders("dakIn");
   var list = filteredDakIn();
   var body = document.getElementById("dakInTableBody");
   body.innerHTML = list.length? list.map(function(d){
@@ -2748,11 +3061,12 @@ function renderDakIn(){
       "<td data-col='diaryNo'>"+esc(d.diaryNo)+"</td><td data-col='receivedDate'>"+esc(d.receivedDate)+"</td><td data-col='receivedFrom'>"+esc(d.receivedFrom)+"</td>"+
       "<td data-col='theirRefNo'>"+esc(d.theirRefNo)+"</td><td data-col='subject' style='white-space:normal;min-width:180px;'>"+esc(d.subject)+"</td><td data-col='receivedThrough'>"+esc(dakThroughLabel(d.receivedThrough))+"</td>"+
       "<td data-col='markedTo'>"+esc(d.markedTo)+"</td><td data-col='status'><span class='tag "+(d.status==="Pending"?"pending":d.status==="Replied"?"decided":"disposed")+"'>"+esc(dakStatusLabel(d.status))+"</span></td>"+
+      customFieldTds("dakIn", d)+
       "<td class='row-actions'>"+
         "<button class='btn secondary small' data-edit='"+esc(d.id)+"' data-owner='"+esc(d.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
         "<button class='btn danger small' data-del='"+esc(d.id)+"' data-owner='"+esc(d.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
-  }).join("") : "<tr class='empty-row'><td colspan='9'>"+esc(t("disp_noneFoundIn"))+"</td></tr>";
+  }).join("") : "<tr class='empty-row'><td colspan='"+customFieldColspan("dakIn")+"'>"+esc(t("disp_noneFoundIn"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editDakIn(el.dataset.edit); }); });
   body.querySelectorAll("[data-del]").forEach(function(el){ el.addEventListener("click", function(){ deleteDakIn(el.dataset.del); }); });
   document.getElementById("dakInCount").textContent = list.length+" "+(list.length===1? t("disp_unitSingularIn") : t("disp_unitPluralIn"));
@@ -2775,6 +3089,7 @@ function resetDakOutForm(){
   document.getElementById("do_saveBtn").textContent = t("disp_saveDakOut");
   document.getElementById("do_cancelBtn").style.display = "none";
   var lh = document.getElementById("do_lastEditedHint"); if(lh) lh.textContent = "";
+  renderCustomFieldInputs("dakOut");
 }
 function editDakOut(id){
   var d = STATE.dakOut.find(function(x){ return x.id===id; });
@@ -2795,6 +3110,8 @@ function editDakOut(id){
   document.getElementById("do_cancelBtn").style.display = "inline-block";
   var lh = document.getElementById("do_lastEditedHint");
   if(lh) lh.textContent = d.lastEditedBy? t("lbl_lastEditedBy").replace("{who}", d.lastEditedBy).replace("{when}", formatDateTime(d.lastEditedAt)) : "";
+  renderCustomFieldInputs("dakOut");
+  populateCustomFieldInputs("dakOut", d);
   document.getElementById("disp_subpanel_out").scrollIntoView({behavior:"smooth", block:"start"});
 }
 function deleteDakOut(id){
@@ -2831,6 +3148,7 @@ document.getElementById("do_saveBtn").addEventListener("click", function(){
     sentBy: document.getElementById("do_sentBy").value,
     status: document.getElementById("do_status").value,
     remarks: document.getElementById("do_remarks").value.trim(),
+    customData: collectCustomFieldValues("dakOut"),
     enteredBy: (CURRENT_USER? CURRENT_USER.username : ""),
     entryDateTime: nowIso(),
     lastEditedBy: (CURRENT_USER? CURRENT_USER.username : ""),
@@ -2877,8 +3195,8 @@ document.getElementById("dof_clear").addEventListener("click", function(){
 });
 document.getElementById("do_exportBtn").addEventListener("click", function(){
   var list = filteredDakOut();
-  var rows = [["Dispatch No","Dispatch Date","Sent To","Our Ref No","Subject","Sent Through","Sent By","Status","Remarks"]];
-  list.forEach(function(d){ rows.push([d.dispatchNo,d.dispatchDate,d.sentTo,d.ourRefNo,d.subject,d.sentThrough,d.sentBy,d.status,d.remarks]); });
+  var rows = [["Dispatch No","Dispatch Date","Sent To","Our Ref No","Subject","Sent Through","Sent By","Status","Remarks"].concat(customFieldCsvHeaders("dakOut"))];
+  list.forEach(function(d){ rows.push([d.dispatchNo,d.dispatchDate,d.sentTo,d.ourRefNo,d.subject,d.sentThrough,d.sentBy,d.status,d.remarks].concat(customFieldCsvValues("dakOut", d))); });
   downloadCSV("dak_out.csv", rows);
 });
 function renderDakOut(){
@@ -2886,6 +3204,8 @@ function renderDakOut(){
   populateDakOutFilterSelects();
   populateActiveEmployeeSelect(document.getElementById("do_sentBy"), "opt_none");
   populateSelectOrAdd("do_sentTo", STATE.dakOut.map(function(d){ return d.sentTo; }), t("opt_selectSentTo"));
+  renderCustomFieldInputs("dakOut");
+  syncCustomHeaders("dakOut");
   var list = filteredDakOut();
   var body = document.getElementById("dakOutTableBody");
   body.innerHTML = list.length? list.map(function(d){
@@ -2893,11 +3213,12 @@ function renderDakOut(){
       "<td data-col='dispatchNo'>"+esc(d.dispatchNo)+"</td><td data-col='dispatchDate'>"+esc(d.dispatchDate)+"</td><td data-col='sentTo'>"+esc(d.sentTo)+"</td>"+
       "<td data-col='ourRefNo'>"+esc(d.ourRefNo)+"</td><td data-col='subject' style='white-space:normal;min-width:180px;'>"+esc(d.subject)+"</td><td data-col='sentThrough'>"+esc(dakThroughLabel(d.sentThrough))+"</td>"+
       "<td data-col='sentBy'>"+esc(d.sentBy)+"</td><td data-col='status'><span class='tag "+(d.status==="Pending"?"pending":d.status==="Acknowledged"?"decided":"disposed")+"'>"+esc(dakStatusLabel(d.status))+"</span></td>"+
+      customFieldTds("dakOut", d)+
       "<td class='row-actions'>"+
         "<button class='btn secondary small' data-edit='"+esc(d.id)+"' data-owner='"+esc(d.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
         "<button class='btn danger small' data-del='"+esc(d.id)+"' data-owner='"+esc(d.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
-  }).join("") : "<tr class='empty-row'><td colspan='9'>"+esc(t("disp_noneFoundOut"))+"</td></tr>";
+  }).join("") : "<tr class='empty-row'><td colspan='"+customFieldColspan("dakOut")+"'>"+esc(t("disp_noneFoundOut"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editDakOut(el.dataset.edit); }); });
   body.querySelectorAll("[data-del]").forEach(function(el){ el.addEventListener("click", function(){ deleteDakOut(el.dataset.del); }); });
   document.getElementById("dakOutCount").textContent = list.length+" "+(list.length===1? t("disp_unitSingularOut") : t("disp_unitPluralOut"));
@@ -2945,6 +3266,7 @@ function resetTokenForm(){
   document.getElementById("tk_saveBtn").textContent = t("tok_saveToken");
   document.getElementById("tk_cancelBtn").style.display = "none";
   var lh = document.getElementById("tk_lastEditedHint"); if(lh) lh.textContent = "";
+  renderCustomFieldInputs("tokens");
 }
 function editToken(id){
   var tk = STATE.tokens.find(function(x){ return x.id===id; });
@@ -2966,6 +3288,8 @@ function editToken(id){
   document.getElementById("tk_cancelBtn").style.display = "inline-block";
   var lh = document.getElementById("tk_lastEditedHint");
   if(lh) lh.textContent = tk.lastEditedBy? t("lbl_lastEditedBy").replace("{who}", tk.lastEditedBy).replace("{when}", formatDateTime(tk.lastEditedAt)) : "";
+  renderCustomFieldInputs("tokens");
+  populateCustomFieldInputs("tokens", tk);
   document.getElementById("panel-tokens").scrollIntoView({behavior:"smooth", block:"start"});
 }
 function deleteToken(id){
@@ -3005,6 +3329,7 @@ document.getElementById("tk_saveBtn").addEventListener("click", function(){
     chequeDate: document.getElementById("tk_chequeDate").value,
     objectionRemarks: document.getElementById("tk_objectionRemarks").value.trim(),
     remarks: document.getElementById("tk_remarks").value.trim(),
+    customData: collectCustomFieldValues("tokens"),
     enteredBy: (CURRENT_USER? CURRENT_USER.username : ""),
     entryDateTime: nowIso(),
     lastEditedBy: (CURRENT_USER? CURRENT_USER.username : ""),
@@ -3051,8 +3376,8 @@ document.getElementById("tkf_clear").addEventListener("click", function(){
 });
 document.getElementById("tk_exportBtn").addEventListener("click", function(){
   var list = filteredTokens();
-  var rows = [["Bill No","Bill Type","Bill Amount","Submission Date","Token No","Submitted By","Status","Cheque No","Cheque Date","Objection Remarks","Remarks"]];
-  list.forEach(function(tk){ rows.push([tk.billNo,tk.billType,tk.billAmount,tk.submissionDate,tk.tokenNo,tk.submittedBy,tk.status,tk.chequeNo,tk.chequeDate,tk.objectionRemarks,tk.remarks]); });
+  var rows = [["Bill No","Bill Type","Bill Amount","Submission Date","Token No","Submitted By","Status","Cheque No","Cheque Date","Objection Remarks","Remarks"].concat(customFieldCsvHeaders("tokens"))];
+  list.forEach(function(tk){ rows.push([tk.billNo,tk.billType,tk.billAmount,tk.submissionDate,tk.tokenNo,tk.submittedBy,tk.status,tk.chequeNo,tk.chequeDate,tk.objectionRemarks,tk.remarks].concat(customFieldCsvValues("tokens", tk))); });
   downloadCSV("token_register.csv", rows);
 });
 function tokenStatusLabel(status){
@@ -3070,6 +3395,8 @@ function renderTokens(){
   if(!document.getElementById("tokenTableBody")) return;
   populateTokenFilterSelects();
   populateActiveEmployeeSelect(document.getElementById("tk_submittedBy"), "opt_none");
+  renderCustomFieldInputs("tokens");
+  syncCustomHeaders("tokens");
   var list = filteredTokens();
   var body = document.getElementById("tokenTableBody");
   body.innerHTML = list.length? list.map(function(tk){
@@ -3078,11 +3405,12 @@ function renderTokens(){
       "<td data-col='submissionDate'>"+esc(tk.submissionDate)+"</td><td data-col='tokenNo'>"+esc(tk.tokenNo)+"</td><td data-col='submittedBy'>"+esc(tk.submittedBy)+"</td>"+
       "<td data-col='status'><span class='tag "+tokenStatusTagClass(tk.status)+"'>"+esc(tokenStatusLabel(tk.status))+"</span></td>"+
       "<td data-col='chequeNo'>"+esc(tk.chequeNo)+"</td>"+
+      customFieldTds("tokens", tk)+
       "<td class='row-actions'>"+
         "<button class='btn secondary small' data-edit='"+esc(tk.id)+"' data-owner='"+esc(tk.enteredBy||"")+"'>"+esc(t("btn_edit"))+"</button>"+
         "<button class='btn danger small' data-del='"+esc(tk.id)+"' data-owner='"+esc(tk.enteredBy||"")+"'>"+esc(t("btn_delete"))+"</button>"+
       "</td></tr>";
-  }).join("") : "<tr class='empty-row'><td colspan='9'>"+esc(t("tok_noneFound"))+"</td></tr>";
+  }).join("") : "<tr class='empty-row'><td colspan='"+customFieldColspan("tokens")+"'>"+esc(t("tok_noneFound"))+"</td></tr>";
   body.querySelectorAll("[data-edit]").forEach(function(el){ el.addEventListener("click", function(){ editToken(el.dataset.edit); }); });
   body.querySelectorAll("[data-del]").forEach(function(el){ el.addEventListener("click", function(){ deleteToken(el.dataset.del); }); });
   document.getElementById("tokenCount").textContent = list.length+" "+(list.length===1? t("tok_unitSingular") : t("tok_unitPlural"));
@@ -3340,6 +3668,10 @@ var CURRENT_USER = null;
 var CLOUDINARY_CLOUD_NAME = "rjsudteo";
 var CLOUDINARY_UPLOAD_PRESET = "t8euf8jm";
 function isAdmin(){ return !!(CURRENT_USER && CURRENT_USER.role==="admin"); }
+/* Same shared users/{uid} doc (roleV2) that bill-register-system reads for its own
+   Fields Manager gate — a Super Admin there is automatically a Super Admin here too,
+   no separate setup needed. */
+function isSuperAdmin(){ return !!(CURRENT_USER && CURRENT_USER.role==="admin" && CURRENT_USER.isSuperAdmin===true); }
 
 /* ---------------- per-branch permissions ----------------
    An Administrator always has full rights everywhere. A Guest's rights are
@@ -3407,6 +3739,8 @@ function updateUserBar(){
   roleEl.textContent = CURRENT_USER? (isAdmin()? t("usr_admin") : t("usr_guest")) : "";
   roleEl.className = "role-badge" + (isAdmin()? " admin" : "");
   document.getElementById("usersNavBtn").style.display = isAdmin()? "flex" : "none";
+  var fieldsMgrTabBtn = document.getElementById("fieldsMgrTabBtn");
+  if(fieldsMgrTabBtn) fieldsMgrTabBtn.style.display = isSuperAdmin()? "flex" : "none";
   document.body.classList.toggle("guest-mode", !isAdmin());
   document.getElementById("hfConfigBtn_panel").style.display = isAdmin()? "inline-flex":"none";
   document.getElementById("hfConfigBtn_detail").style.display = isAdmin()? "inline-flex":"none";
@@ -3421,7 +3755,7 @@ function updateUserBar(){
 var PANEL_LABELS = {
   dashboard:"Dashboard", cases:"Cases", hearings:"Hearings", results:"Results",
   employees:"Employees", dispatch:"Dak In/Out", tokens:"Token Register",
-  reports:"Reports", users:"Users", help:"Help / Guide"
+  reports:"Reports", users:"Users", help:"Help / Guide", fieldsmgr:"Fields Manager"
 };
 function currentPanelKey(){
   var active = document.querySelector(".panel.active");
@@ -3624,6 +3958,7 @@ auth.onAuthStateChanged(function(user){
     if(unsubscribeUserDoc){ unsubscribeUserDoc(); unsubscribeUserDoc = null; }
     unsubscribeUserDoc = db.collection("users").doc(user.uid).onSnapshot(function(snap){
       var role = snap.exists? (snap.data().role || ((snap.data().roleV2==="admin" || snap.data().roleV2==="super_admin") ? "admin" : "guest")) : "guest";
+      var isSuperAdminFlag = snap.exists? (snap.data().roleV2==="super_admin") : false;
       var theme = snap.exists? (snap.data().theme||null) : null;
       var signatureURL = snap.exists? (snap.data().signatureURL||"") : "";
       var rawPerms = snap.exists? (snap.data().permissions||{}) : {};
@@ -3632,9 +3967,9 @@ auth.onAuthStateChanged(function(user){
         recordBranch: !!rawPerms.recordBranch,
         accountsBranch: !!rawPerms.accountsBranch
       };
-      var prevKey = CURRENT_USER? JSON.stringify({role:CURRENT_USER.role, permissions:CURRENT_USER.permissions}) : null;
-      var newKey = JSON.stringify({role:role, permissions:newPerms});
-      CURRENT_USER = {uid:user.uid, username:user.email, role:role, permissions:newPerms, signatureURL:signatureURL};
+      var prevKey = CURRENT_USER? JSON.stringify({role:CURRENT_USER.role, permissions:CURRENT_USER.permissions, isSuperAdmin:CURRENT_USER.isSuperAdmin}) : null;
+      var newKey = JSON.stringify({role:role, permissions:newPerms, isSuperAdmin:isSuperAdminFlag});
+      CURRENT_USER = {uid:user.uid, username:user.email, role:role, permissions:newPerms, signatureURL:signatureURL, isSuperAdmin:isSuperAdminFlag};
       if(theme) applyTheme(theme);
       if(firstLoad){
         firstLoad = false;
@@ -4187,6 +4522,7 @@ function renderAll(){
   renderTokens();
   renderReports();
   renderUsers();
+  renderFieldsManager();
 }
 
 document.getElementById("uiLangSelect").addEventListener("change", function(){ applyUILang(this.value); });
