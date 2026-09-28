@@ -24,6 +24,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <!-- Sends the super-admin security code by email (see "Super Admin Email OTP Gate" below) -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
@@ -624,6 +625,7 @@ html,body{overflow-x:hidden;}
   <div class="detail-shell">
     <div class="detail-toolbar">
       <button class="btn" id="d_printBtn" data-i18n="btn_print">Print</button>
+      <button class="btn ghost" id="d_pdfBtn" data-i18n="btn_downloadPdf">📄 Download PDF</button>
       <button id="hfConfigBtn_detail" type="button" class="btn ghost small" style="display:none;" title="Case detail header/footer fields / کیس تفصیل ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
       <button class="btn ghost" id="d_closeBtn" data-i18n="btn_close">Close</button>
     </div>
@@ -689,6 +691,7 @@ html,body{overflow-x:hidden;}
         </select>
       </label>
       <button id="globalPrintBtn" data-i18n="btn_printCurrent">Print current view</button>
+      <button id="globalPdfBtn" data-i18n="btn_downloadPdf">📄 Download PDF</button>
       <button id="hfConfigBtn_panel" type="button" class="btn ghost small" style="display:none;" title="Report header/footer fields / رپورٹ ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
       <button id="colsConfigBtn_panel" type="button" class="btn ghost small" style="display:none;" title="Select which columns print for this panel / اس پینل کے لیے پرنٹ کالم منتخب کریں">☰ Select Columns</button>
       <span><span data-i18n="lbl_signedInAs">Signed in as</span> <b id="currentUserLabel">—</b> <span class="role-badge" id="currentUserRole"></span></span>
@@ -1450,6 +1453,7 @@ html,body{overflow-x:hidden;}
       <div class="btnbar">
         <button class="btn secondary" id="r_exportBtn" data-i18n="rep_exportExcel">Export report (Excel)</button>
         <button class="btn ghost" id="r_printBtn" data-i18n="rep_printReport">Print report</button>
+        <button class="btn ghost" id="r_pdfBtn" data-i18n="btn_downloadPdf">📄 Download PDF</button>
       </div>
     </section>
 
@@ -3566,6 +3570,59 @@ document.getElementById("d_printBtn").addEventListener("click", function(){
 });
 window.addEventListener("afterprint", function(){ document.body.classList.remove("detail-mode"); });
 
+/* ================= PDF Download helper (html2pdf.js) =================
+   The case detail view has its own dedicated printable element (#detailPaper,
+   a sibling of the toolbar) so pdfDownload() can snapshot it directly. For
+   the panel/report "whole current view" there is no dedicated printable div
+   -- normally the @media print CSS is what hides the sidebar/toolbar/etc.
+   withPrintCssActive() temporarily turns those @media print rules into
+   normal (always-on) rules, takes the snapshot, then removes them again --
+   so the PDF matches exactly what Print would produce. This never calls
+   window.print(), so it does not trigger the "prepared by" sign-off modal
+   below -- PDF download is a plain export, not a signed printout. */
+function withPrintCssActive(fn){
+  var css = "";
+  for(var i=0;i<document.styleSheets.length;i++){
+    try{
+      var rules = document.styleSheets[i].cssRules;
+      if(!rules) continue;
+      for(var j=0;j<rules.length;j++){
+        var r = rules[j];
+        if(r.media && r.media.mediaText && r.media.mediaText.indexOf("print")!==-1){
+          for(var k=0;k<r.cssRules.length;k++){ css += r.cssRules[k].cssText + "\n"; }
+        }
+      }
+    }catch(e){}
+  }
+  var styleTag = document.createElement("style");
+  styleTag.textContent = css;
+  document.head.appendChild(styleTag);
+  var cleanup = function(){ try{ document.head.removeChild(styleTag); }catch(e){} };
+  try{ fn(cleanup); }catch(e){ cleanup(); throw e; }
+}
+function pdfCapture(el, filename, orientation, onDone){
+  if(!el){ alert("Nothing to export yet."); if(onDone) onDone(); return; }
+  if(typeof html2pdf === "undefined"){ alert("PDF library did not load — check your internet connection and try again."); if(onDone) onDone(); return; }
+  html2pdf().set({
+    margin: 8,
+    filename: filename || "document.pdf",
+    image: { type: "jpeg", quality: 0.97 },
+    html2canvas: { scale: 2, useCORS: true, allowTaint: true, height: el.scrollHeight, windowHeight: el.scrollHeight },
+    jsPDF: { unit: "mm", format: "a4", orientation: orientation || "portrait" },
+    pagebreak: { mode: ["css", "legacy"] }
+  }).from(el).save().then(function(){ if(onDone) onDone(); }).catch(function(){ if(onDone) onDone(); });
+}
+function pdfDownload(el, filename){ pdfCapture(el, filename, "portrait", null); }
+function downloadCurrentViewPDF(){
+  document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
+  withPrintCssActive(function(cleanup){
+    pdfCapture(document.body, (currentPanelKey()||"report")+".pdf", "portrait", cleanup);
+  });
+}
+document.getElementById("d_pdfBtn").addEventListener("click", function(){
+  pdfDownload(document.getElementById("detailPaper"), "case-detail.pdf");
+});
+
 /* ================= DASHBOARD ================= */
 function statCardHtml(label, value, accent){
   return "<div class='card stat-card"+(accent?" accent":"")+"'><div class='stat-label'>"+esc(label)+"</div><div class='stat-value'>"+esc(value)+"</div></div>";
@@ -3750,6 +3807,7 @@ document.getElementById("r_printBtn").addEventListener("click", function(){
   document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
   window.print();
 });
+document.getElementById("r_pdfBtn").addEventListener("click", downloadCurrentViewPDF);
 
 /* ================= AUTH ================= */
 /* ================= THEME (per-user; follows the user's login across every camp-office system) ================= */
@@ -4638,6 +4696,7 @@ document.getElementById("globalPrintBtn").addEventListener("click", function(){
   document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
   window.print();
 });
+document.getElementById("globalPdfBtn").addEventListener("click", downloadCurrentViewPDF);
 
 /* Boot happens inside auth.onAuthStateChanged() above, once Firebase reports whether
    someone is already signed in. Until then both auth screens stay hidden (display:none
@@ -4683,7 +4742,7 @@ en: {
   lbl_resultDate:"Judgment/Result Date", lbl_resultCategory:"Result Category", lbl_shortOrder:"Short Order / Result", lbl_detailedRemarks:"Detailed Remarks",
   lbl_dateFrom:"Date from", lbl_dateTo:"Date to",
   btn_cancelEdit:"Cancel edit", btn_exportCsv:"Export visible rows (CSV)", btn_clearFilters:"Clear filters",
-  btn_view:"View", btn_edit:"Edit", btn_delete:"Delete", btn_print:"Print", btn_close:"Close", btn_updateEntry:"Update entry",
+  btn_view:"View", btn_edit:"Edit", btn_delete:"Delete", btn_print:"Print", btn_close:"Close", btn_updateEntry:"Update entry", btn_downloadPdf:"📄 Download PDF",
   lbl_lastEditedBy:"Last edited by {who} on {when}",
   opt_allCaseNumbers:"All case numbers", opt_any:"Any", opt_allCases:"All cases", opt_none:"— none —", opt_selectCase:"Select case…",
   opt_pending:"Pending", opt_adjourned:"Adjourned", opt_decided:"Decided", opt_disposed:"Disposed", opt_withdrawn:"Withdrawn", opt_other:"Other",
@@ -4898,7 +4957,7 @@ ur: {
   lbl_resultDate:"فیصلہ/نتیجہ کی تاریخ", lbl_resultCategory:"نتیجہ کی قسم", lbl_shortOrder:"مختصر حکم / نتیجہ", lbl_detailedRemarks:"تفصیلی ریمارکس",
   lbl_dateFrom:"تاریخ از", lbl_dateTo:"تاریخ تا",
   btn_cancelEdit:"ترمیم منسوخ کریں", btn_exportCsv:"نظر آنے والی سطریں ایکسپورٹ کریں (CSV)", btn_clearFilters:"فلٹرز صاف کریں",
-  btn_view:"دیکھیں", btn_edit:"ترمیم", btn_delete:"حذف کریں", btn_print:"پرنٹ", btn_close:"بند کریں", btn_updateEntry:"اندراج اپڈیٹ کریں",
+  btn_view:"دیکھیں", btn_edit:"ترمیم", btn_delete:"حذف کریں", btn_print:"پرنٹ", btn_close:"بند کریں", btn_updateEntry:"اندراج اپڈیٹ کریں", btn_downloadPdf:"📄 PDF ڈاؤن لوڈ کریں",
   lbl_lastEditedBy:"آخری بار {who} نے {when} کو تبدیل کیا",
   opt_allCaseNumbers:"تمام کیس نمبرز", opt_any:"کوئی بھی", opt_allCases:"تمام کیسز", opt_none:"— کوئی نہیں —", opt_selectCase:"کیس منتخب کریں…",
   opt_pending:"زیرِ التوا", opt_adjourned:"ملتوی", opt_decided:"فیصلہ شدہ", opt_disposed:"نمٹایا گیا", opt_withdrawn:"واپس لیا گیا", opt_other:"دیگر",
