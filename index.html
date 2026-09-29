@@ -21,6 +21,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script><!-- Sends the super-admin security code by email (see "Super Admin Email OTP Gate" below) -->
@@ -623,7 +624,7 @@ html,body{overflow-x:hidden;}
   <div class="detail-shell">
     <div class="detail-toolbar">
       <button class="btn" id="d_printBtn" data-i18n="btn_print">Print</button>
-      <button class="btn ghost" id="d_pdfBtn" title="Choose 'Save as PDF' in the print window" data-i18n="btn_downloadPdf">📄 Download PDF</button>
+      <button class="btn ghost" id="d_pdfBtn" title="Downloads a ready PDF file directly" data-i18n="btn_downloadPdf">📄 Download PDF</button>
       <button id="hfConfigBtn_detail" type="button" class="btn ghost small" style="display:none;" title="Case detail header/footer fields / کیس تفصیل ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
       <button class="btn ghost" id="d_closeBtn" data-i18n="btn_close">Close</button>
     </div>
@@ -689,7 +690,7 @@ html,body{overflow-x:hidden;}
         </select>
       </label>
       <button id="globalPrintBtn" data-i18n="btn_printCurrent">Print current view</button>
-      <button id="globalPdfBtn" title="Choose 'Save as PDF' in the print window" data-i18n="btn_downloadPdf">📄 Download PDF</button>
+      <button id="globalPdfBtn" title="Downloads a ready PDF file directly" data-i18n="btn_downloadPdf">📄 Download PDF</button>
       <button id="hfConfigBtn_panel" type="button" class="btn ghost small" style="display:none;" title="Report header/footer fields / رپورٹ ہیڈر/فوٹر فیلڈز">☰ Header/Footer</button>
       <button id="colsConfigBtn_panel" type="button" class="btn ghost small" style="display:none;" title="Select which columns print for this panel / اس پینل کے لیے پرنٹ کالم منتخب کریں">☰ Select Columns</button>
       <span><span data-i18n="lbl_signedInAs">Signed in as</span> <b id="currentUserLabel">—</b> <span class="role-badge" id="currentUserRole"></span></span>
@@ -1451,7 +1452,7 @@ html,body{overflow-x:hidden;}
       <div class="btnbar">
         <button class="btn secondary" id="r_exportBtn" data-i18n="rep_exportExcel">Export report (Excel)</button>
         <button class="btn ghost" id="r_printBtn" data-i18n="rep_printReport">Print report</button>
-        <button class="btn ghost" id="r_pdfBtn" title="Choose 'Save as PDF' in the print window" data-i18n="btn_downloadPdf">📄 Download PDF</button>
+        <button class="btn ghost" id="r_pdfBtn" title="Downloads a ready PDF file directly" data-i18n="btn_downloadPdf">📄 Download PDF</button>
       </div>
     </section>
 
@@ -1632,7 +1633,7 @@ html,body{overflow-x:hidden;}
         </details>
         <details class="faq-item">
           <summary data-i18n="help_faq11_q">Is there a "Download PDF" option too?</summary>
-          <div class="faq-answer" data-i18n="help_faq11_a">Yes — next to Print you'll find a "Download PDF" button, on the case detail view and on every panel/report. It opens the same print window; just choose "Save as PDF" (or "Microsoft Print to PDF") as the destination there instead of a physical printer.</div>
+          <div class="faq-answer" data-i18n="help_faq11_a">Yes — next to Print you'll find a "Download PDF" button, on the case detail view and on every panel/report. It builds and downloads a ready PDF file directly, with no print window and no browser header/footer added to it.</div>
         </details>
         <details class="faq-item">
           <summary data-i18n="help_faq12_q">I forgot my password — what should I do?</summary>
@@ -3577,10 +3578,61 @@ document.getElementById("d_printBtn").addEventListener("click", function(){
 window.addEventListener("afterprint", function(){ document.body.classList.remove("detail-mode"); });
 
 document.getElementById("d_pdfBtn").addEventListener("click", function(){
-  document.body.classList.add("detail-mode");
-  document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml("detail");
-  window.print();
+  downloadCurrentViewAsPdf("detail");
 });
+
+/* ================= Real "Download PDF" — an actual file, not the print dialog =================
+   The old Download PDF buttons just called window.print() and relied on the user picking
+   "Save as PDF" in the browser's print window, which stamps its own header/footer onto the
+   result. This builds a real PDF file client-side (html2pdf.js) and downloads it directly —
+   no print window, no browser chrome. Temporarily flips "@media print" rules to "@media all"
+   so the existing print styling still applies while it's captured, then restores it. */
+function withPrintRulesActive(fn){
+  var touched = [];
+  Array.prototype.forEach.call(document.styleSheets, function(sheet){
+    var rules;
+    try{ rules = sheet.cssRules; }catch(e){ return; }
+    if(!rules) return;
+    Array.prototype.forEach.call(rules, function(rule){
+      if(rule.type === CSSRule.MEDIA_RULE && rule.media && rule.media.mediaText.indexOf("print") !== -1){
+        touched.push({rule: rule, original: rule.media.mediaText});
+        try{ rule.media.mediaText = "all"; }catch(e){/* ignore */}
+      }
+    });
+  });
+  return Promise.resolve().then(fn).finally(function(){
+    touched.forEach(function(t){
+      try{ t.rule.media.mediaText = t.original; }catch(e){/* ignore */}
+    });
+  });
+}
+function downloadCurrentViewAsPdf(mode){
+  var isDetail = mode === "detail";
+  if(isDetail){
+    document.body.classList.add("detail-mode");
+    document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml("detail");
+  } else {
+    document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
+  }
+  var target = isDetail ? document.getElementById("detailOverlay") : document.querySelector(".shell");
+  var label = isDetail ? "CaseDetail" : (PANEL_LABELS[currentPanelKey()]||"Document").replace(/[^A-Za-z0-9]+/g,'-');
+  var filename = "CampOffice-DCMS-"+label+"-"+todayStr()+".pdf";
+  withPrintRulesActive(function(){
+    return html2pdf().set({
+      margin: [14,14,14,14],
+      filename: filename,
+      image: {type:"jpeg", quality:0.98},
+      html2canvas: {scale:2, useCORS:true, logging:false, windowWidth: target.scrollWidth},
+      jsPDF: {unit:"mm", format:"a4", orientation:"portrait"},
+      pagebreak: {mode:["css","legacy"]}
+    }).from(target).save();
+  }).catch(function(err){
+    console.error("PDF export failed:", err);
+    toast("PDF بنانے میں خرابی — دوبارہ کوشش کریں۔ / Could not build the PDF — please try again.");
+  }).finally(function(){
+    if(isDetail) document.body.classList.remove("detail-mode");
+  });
+}
 
 /* ================= DASHBOARD ================= */
 function statCardHtml(label, value, accent){
@@ -3767,8 +3819,7 @@ document.getElementById("r_printBtn").addEventListener("click", function(){
   window.print();
 });
 document.getElementById("r_pdfBtn").addEventListener("click", function(){
-  document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
-  window.print();
+  downloadCurrentViewAsPdf("panel");
 });
 
 /* ================= AUTH ================= */
@@ -4659,8 +4710,7 @@ document.getElementById("globalPrintBtn").addEventListener("click", function(){
   window.print();
 });
 document.getElementById("globalPdfBtn").addEventListener("click", function(){
-  document.getElementById("pbPrintExtraFields").innerHTML = buildPrintExtraFieldsHtml(currentPanelKey());
-  window.print();
+  downloadCurrentViewAsPdf("panel");
 });
 
 /* Boot happens inside auth.onAuthStateChanged() above, once Firebase reports whether
@@ -4876,7 +4926,7 @@ en: {
   help_faq10_q:"Can I get case, hearing, or dispatch data into Excel?",
   help_faq10_a:"Yes — most tables have an \"Export visible rows (CSV)\" or \"Export (Excel)\" button that saves exactly the rows currently shown by your filters, ready to open in Excel.",
   help_faq11_q:"Is there a \"Download PDF\" option too?",
-  help_faq11_a:"Yes — next to Print you'll find a \"Download PDF\" button, on the case detail view and on every panel/report. It opens the same print window; just choose \"Save as PDF\" (or \"Microsoft Print to PDF\") as the destination there instead of a physical printer.",
+  help_faq11_a:"Yes — next to Print you'll find a \"Download PDF\" button, on the case detail view and on every panel/report. It builds and downloads a ready PDF file directly, with no print window and no browser header/footer added to it.",
   help_faq12_q:"I forgot my password — what should I do?",
   help_faq12_a:"Click \"Forgot password?\" on the sign-in screen, enter your email, and a password reset link will be sent to your inbox (check spam too) — no need to contact an Administrator.",
 
@@ -5095,7 +5145,7 @@ ur: {
   help_faq10_q:"کیا میں کیس، پیشی، یا ڈسپیچ کا ڈیٹا ایکسل میں لا سکتا ہوں؟",
   help_faq10_a:"جی ہاں — زیادہ تر ٹیبلز میں \"نظر آنے والی قطاریں (CSV) ایکسپورٹ کریں\" یا \"ایکسپورٹ (ایکسل)\" کا بٹن ہوتا ہے جو آپ کے فلٹرز کے مطابق فی الحال نظر آنے والی قطاریں ہی محفوظ کرتا ہے، ایکسل میں کھولنے کے لیے تیار۔",
   help_faq11_q:"کیا \"Download PDF\" کا آپشن بھی موجود ہے؟",
-  help_faq11_a:"جی ہاں — کیس تفصیل اور ہر پینل/رپورٹ پر Print کے ساتھ ہی \"Download PDF\" بٹن موجود ہے۔ یہ وہی پرنٹ ونڈو کھولتا ہے؛ بس وہاں پرنٹر کی بجائے \"Save as PDF\" (یا \"Microsoft Print to PDF\") منتخب کر لیں۔",
+  help_faq11_a:"جی ہاں — کیس تفصیل اور ہر پینل/رپورٹ پر Print کے ساتھ ہی \"Download PDF\" بٹن موجود ہے۔ یہ کوئی پرنٹ ونڈو کھولے بغیر سیدھی ایک تیار PDF فائل بنا کر ڈاؤن لوڈ کر دیتا ہے — نہ کوئی پرنٹ ونڈو، نہ browser کا کوئی اضافی ہیڈر/فوٹر۔",
   help_faq12_q:"میں اپنا پاس ورڈ بھول گیا — کیا کروں؟",
   help_faq12_a:"سائن اِن اسکرین پر \"Forgot password?\" پر کلک کریں، اپنا ای میل درج کریں، اور پاس ورڈ ری سیٹ لنک آپ کے ای میل پر بھیج دیا جائے گا (spam فولڈر بھی چیک کریں) — Administrator سے رابطے کی ضرورت نہیں۔",
 
