@@ -475,6 +475,10 @@ html,body{overflow-x:hidden;}
     main{padding:0;max-width:none;}
     body{background:#fff;}
     .card{box-shadow:none;border:1px solid #999;}
+    /* Wide tables (with several custom fields added via Field Manager) scroll horizontally
+       on screen (.table-wrap{overflow-x:auto}) — let the full table render at its natural
+       width during capture instead of only the currently-scrolled-into-view columns. */
+    .table-wrap{overflow-x:visible !important;}
     body:not(.detail-mode) .detail-overlay{display:none !important;}
     body.detail-mode > #appMain,
     body.detail-mode > .toast,
