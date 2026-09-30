@@ -470,7 +470,12 @@ html,body{overflow-x:hidden;}
 
   @media print{
     nav.sidenav,.search-bar,.btnbar,.topbar,.row-actions,.row-actions-th,.card.entry-form,footer.appfoot,.auth-screen,.userbar,#chatToggleBtn,#chatPanel,
-    .panel-head p,.appfoot-copyright{display:none !important;}
+    .panel-head p,.appfoot-copyright,
+    .sidebar,.sidebar-backdrop{display:none !important;}
+    /* The portal-wide navigation sidebar (Dashboard/Case Management/Reports links etc.) is
+       chrome, not report content — without this it was rendering into every downloaded PDF. */
+    .app-shell{display:block !important;}
+    .main-col{width:100% !important;}
     .shell{display:block;min-height:0;}
     main{padding:0;max-width:none;}
     body{background:#fff;}
@@ -939,6 +944,13 @@ html,body{overflow-x:hidden;}
               <option value="Disposed of" data-i18n="opt_disposedOf">Disposed of</option>
               <option value="Withdrawn" data-i18n="opt_withdrawn">Withdrawn</option>
               <option value="Notice Issued" data-i18n="opt_noticeIssued">Notice Issued</option>
+              <option value="Conviction" data-i18n="opt_conviction">Conviction</option>
+              <option value="Life Imprisonment" data-i18n="opt_lifeImprisonment">Life Imprisonment</option>
+              <option value="Death Sentence" data-i18n="opt_deathSentence">Death Sentence</option>
+              <option value="Acquittal" data-i18n="opt_acquittal">Acquittal</option>
+              <option value="Bail Granted" data-i18n="opt_bailGranted">Bail Granted</option>
+              <option value="Bail Dismissed" data-i18n="opt_bailDismissed">Bail Dismissed</option>
+              <option value="Fine Imposed" data-i18n="opt_fineImposed">Fine Imposed</option>
               <option value="Pending" data-i18n="opt_pending">Pending</option>
               <option value="Other" data-i18n="opt_other">Other</option>
             </select>
@@ -1405,7 +1417,12 @@ html,body{overflow-x:hidden;}
             <button class="btn" id="r_generateBtn" data-i18n="rep_generate">Generate report</button>
           </div>
         </div>
+        <div class="btnbar" style="margin-top:10px;">
+          <button class="btn ghost small" id="r_catFilterBtn" type="button">🎯 Select Result Categories <span id="r_catFilterChip" class="count-chip" style="margin-left:6px;"></span></button>
+        </div>
       </div>
+
+      <p class="field-hint" id="reportCatNote" style="margin:-10px 0 14px;"></p>
 
       <div class="grid cols-4" id="reportStatCards" style="margin-bottom:18px;"></div>
 
@@ -1750,6 +1767,22 @@ html,body{overflow-x:hidden;}
     <div class="pb-actions">
       <button type="button" class="pb-cancel" id="colsCancelBtn">Cancel</button>
       <button type="button" class="pb-confirm" id="colsSaveBtn">محفوظ کریں / Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="hf-modal-overlay" id="repCatModalOverlay">
+  <div class="hf-modal">
+    <h3>Select Result Categories — Reports</h3>
+    <div class="pb-sub">صرف وہی Result Categories منتخب کریں جن کی گنتی اس رپورٹ (اور PDF) میں چاہیے — مثلاً صرف "Life Imprisonment" اور "Bail Granted"۔ کچھ بھی منتخب نہ کریں تو سب categories دکھائی دیں گی۔<br>Pick only the Result Categories you want counted in this report (and its PDF) — e.g. only "Life Imprisonment" and "Bail Granted". Leave none selected to show every category.</div>
+    <div class="btnbar" style="margin-bottom:8px;">
+      <button type="button" class="btn ghost small" id="repCatSelectAllBtn">Select all</button>
+      <button type="button" class="btn ghost small" id="repCatClearBtn">Clear (= all categories)</button>
+    </div>
+    <div id="repCatCheckboxWrap" style="max-height:340px;overflow-y:auto;"></div>
+    <div class="pb-actions">
+      <button type="button" class="pb-cancel" id="repCatCancelBtn">Cancel</button>
+      <button type="button" class="pb-confirm" id="repCatSaveBtn">Apply / لاگو کریں</button>
     </div>
   </div>
 </div>
@@ -3621,12 +3654,17 @@ function downloadCurrentViewAsPdf(mode){
   var target = isDetail ? document.getElementById("detailOverlay") : document.querySelector(".shell");
   var label = isDetail ? "CaseDetail" : (PANEL_LABELS[currentPanelKey()]||"Document").replace(/[^A-Za-z0-9]+/g,'-');
   var filename = "CampOffice-DCMS-"+label+"-"+todayStr()+".pdf";
+  /* Reset scroll before capture: html2canvas otherwise offsets the capture by whatever the
+     real page's current scroll position happens to be (left over from browsing a wide table
+     or a different panel), cropping/shifting the result — scrollX/scrollY:0 below tells it
+     not to add that offset, and this scrollTo makes sure there genuinely isn't one to add. */
+  window.scrollTo(0,0);
   withPrintRulesActive(function(){
     return html2pdf().set({
       margin: [14,14,14,14],
       filename: filename,
       image: {type:"jpeg", quality:0.98},
-      html2canvas: {scale:2, useCORS:true, logging:false, windowWidth: target.scrollWidth},
+      html2canvas: {scale:2, useCORS:true, logging:false, windowWidth: target.scrollWidth, scrollX:0, scrollY:0},
       jsPDF: {unit:"mm", format:"a4", orientation:"portrait"},
       pagebreak: {mode:["css","legacy"]}
     }).from(target).save();
@@ -3713,6 +3751,12 @@ function renderReports(){
 
   var chip = document.getElementById("reportRangeChip");
   chip.textContent = (from||to)? ((from||"…")+"  →  "+(to||"…")) : t("rep_allTime");
+  var catNoteEl = document.getElementById("reportCatNote");
+  if(catNoteEl){
+    catNoteEl.textContent = RESULT_CATEGORY_FILTER
+      ? ("Selected result categories only ("+RESULT_CATEGORY_FILTER.length+"): "+RESULT_CATEGORY_FILTER.join(", ")+" / منتخب کردہ categories")
+      : "";
+  }
 
   var pendingNow = STATE.cases.filter(function(c){ return c.status==="Pending"; }).length;
   document.getElementById("reportStatCards").innerHTML =
@@ -3737,7 +3781,11 @@ function renderReports(){
   renderCountTable("reportEmpBody", "reportEmpTotals", empCounts, function(k){ return k; });
 
   var catCounts = {};
-  data.results.forEach(function(r){ var c = r.resultCategory||t("opt_other"); catCounts[c] = (catCounts[c]||0)+1; });
+  data.results.forEach(function(r){
+    var c = r.resultCategory||t("opt_other");
+    if(RESULT_CATEGORY_FILTER && RESULT_CATEGORY_FILTER.indexOf(c)===-1) return;
+    catCounts[c] = (catCounts[c]||0)+1;
+  });
   renderCountTable("reportResultBody", "reportResultTotals", catCounts, function(k){ return k; });
 }
 document.getElementById("r_quick").addEventListener("change", function(){
@@ -3796,7 +3844,11 @@ document.getElementById("r_exportBtn").addEventListener("click", function(){
   var statusCounts = {}; data.cases.forEach(function(c){ var s=c.status||"Other"; statusCounts[s]=(statusCounts[s]||0)+1; });
   var typeCounts = {}; data.cases.forEach(function(c){ var ty=c.caseType||"Other"; typeCounts[ty]=(typeCounts[ty]||0)+1; });
   var empCounts = {}; data.hearings.forEach(function(h){ var e=h.employee||"—"; empCounts[e]=(empCounts[e]||0)+1; });
-  var catCounts = {}; data.results.forEach(function(r){ var c=r.resultCategory||"Other"; catCounts[c]=(catCounts[c]||0)+1; });
+  var catCounts = {}; data.results.forEach(function(r){
+    var c=r.resultCategory||"Other";
+    if(RESULT_CATEGORY_FILTER && RESULT_CATEGORY_FILTER.indexOf(c)===-1) return;
+    catCounts[c]=(catCounts[c]||0)+1;
+  });
   var summaryRows = [["Daily Case Management System — Report Summary"],["Report period", (from||"All-time")+" to "+(to||"All-time")],[],["Cases by Status"]];
   Object.keys(statusCounts).forEach(function(k){ summaryRows.push([statusLabel(k), statusCounts[k]]); });
   summaryRows.push([],["Cases by Type"]);
@@ -4062,6 +4114,57 @@ document.getElementById("colsSaveBtn").addEventListener("click", function(){
   saveData();
   document.getElementById("colsModalOverlay").style.display = "none";
   toast("Print column selection saved for "+(PANEL_LABELS[key]||key)+".");
+});
+
+/* ================= Custom Report: filter "Results — by Category" by chosen categories =================
+   User-requested (30 Sep 2026): so the office can pull, say, just how many cases ended in Life
+   Imprisonment vs Bail Granted, without the other categories cluttering the printed report. The
+   category list is read straight from the Result Category dropdown (rs_resultCategory) so it
+   never drifts out of sync with whatever categories actually exist. A plain in-memory filter,
+   like the date-range fields beside it — not saved to STATE/backups, since it's a per-viewing
+   choice, not data. */
+var RESULT_CATEGORY_FILTER = null; // null = every category; otherwise an array of selected values
+function allResultCategories(){
+  // {value, label} straight from the live <option> elements (label = their current on-screen
+  // text, already in whatever language is active) so this never drifts from the real dropdown.
+  return Array.prototype.map.call(document.querySelectorAll("#rs_resultCategory option"), function(o){ return {value:o.value, label:o.textContent}; });
+}
+function renderRepCatCheckboxes(){
+  var cats = allResultCategories();
+  var selected = RESULT_CATEGORY_FILTER;
+  var html = cats.map(function(c){
+    var checked = !selected || selected.indexOf(c.value)!==-1;
+    return "<div class='hf-check-row'><input type='checkbox' class='repCatChk' value=\""+esc(c.value)+"\""+(checked?" checked":"")+"><label><span class='hf-check-label'>"+esc(c.label)+"</span></label></div>";
+  }).join("");
+  document.getElementById("repCatCheckboxWrap").innerHTML = html || "<p>No categories found.</p>";
+}
+function updateRepCatChip(){
+  var chip = document.getElementById("r_catFilterChip");
+  if(!chip) return;
+  if(!RESULT_CATEGORY_FILTER){ chip.textContent = ""; chip.style.display = "none"; }
+  else { chip.textContent = RESULT_CATEGORY_FILTER.length+" selected"; chip.style.display = "inline-flex"; }
+}
+document.getElementById("r_catFilterBtn").addEventListener("click", function(){
+  renderRepCatCheckboxes();
+  document.getElementById("repCatModalOverlay").style.display = "flex";
+});
+document.getElementById("repCatCancelBtn").addEventListener("click", function(){
+  document.getElementById("repCatModalOverlay").style.display = "none";
+});
+document.getElementById("repCatSelectAllBtn").addEventListener("click", function(){
+  document.querySelectorAll("#repCatCheckboxWrap .repCatChk").forEach(function(chk){ chk.checked = true; });
+});
+document.getElementById("repCatClearBtn").addEventListener("click", function(){
+  document.querySelectorAll("#repCatCheckboxWrap .repCatChk").forEach(function(chk){ chk.checked = false; });
+});
+document.getElementById("repCatSaveBtn").addEventListener("click", function(){
+  var all = allResultCategories().map(function(c){ return c.value; });
+  var checked = [];
+  document.querySelectorAll("#repCatCheckboxWrap .repCatChk").forEach(function(chk){ if(chk.checked) checked.push(chk.value); });
+  RESULT_CATEGORY_FILTER = (checked.length===0 || checked.length===all.length) ? null : checked;
+  updateRepCatChip();
+  document.getElementById("repCatModalOverlay").style.display = "none";
+  renderReports();
 });
 
 function showAppScreen(){
@@ -4767,6 +4870,8 @@ en: {
   opt_pending:"Pending", opt_adjourned:"Adjourned", opt_decided:"Decided", opt_disposed:"Disposed", opt_withdrawn:"Withdrawn", opt_other:"Other",
   opt_addNewValue:"+ Add a new value…", opt_selectBenchCourt:"Select bench/court…", opt_selectReceivedFrom:"Select received from…", opt_selectSentTo:"Select sent to…",
   opt_allowed:"Allowed", opt_dismissed:"Dismissed", opt_partlyAllowed:"Partly Allowed", opt_disposedOf:"Disposed of", opt_noticeIssued:"Notice Issued",
+  opt_conviction:"Conviction", opt_lifeImprisonment:"Life Imprisonment", opt_deathSentence:"Death Sentence", opt_acquittal:"Acquittal",
+  opt_bailGranted:"Bail Granted", opt_bailDismissed:"Bail Dismissed", opt_fineImposed:"Fine Imposed",
   opt_allNames:"All names", opt_allDesignations:"All designations",
   th_caseNo:"Case No", th_caseType:"Type", th_caseTitle:"Title", th_diaryNo:"Diary No", th_filingDate:"Filing Date", th_bench:"Bench/Court",
   th_assignedEmployee:"Assigned Employee", th_status:"Status", th_nextDate:"Next Hearing Date", th_lastResult:"Latest Result", th_actions:"Actions",
@@ -4986,6 +5091,8 @@ ur: {
   opt_pending:"زیرِ التوا", opt_adjourned:"ملتوی", opt_decided:"فیصلہ شدہ", opt_disposed:"نمٹایا گیا", opt_withdrawn:"واپس لیا گیا", opt_other:"دیگر",
   opt_addNewValue:"+ نئی ویلیو شامل کریں…", opt_selectBenchCourt:"بینچ/عدالت منتخب کریں…", opt_selectReceivedFrom:"موصول کنندہ منتخب کریں…", opt_selectSentTo:"بھیجنے کا مقام منتخب کریں…",
   opt_allowed:"منظور", opt_dismissed:"خارج", opt_partlyAllowed:"جزوی منظور", opt_disposedOf:"نمٹایا گیا", opt_noticeIssued:"نوٹس جاری",
+  opt_conviction:"سزا", opt_lifeImprisonment:"عمر قید", opt_deathSentence:"سزائے موت", opt_acquittal:"بریت",
+  opt_bailGranted:"ضمانت منظور", opt_bailDismissed:"ضمانت خارج", opt_fineImposed:"جرمانہ عائد",
   opt_allNames:"تمام نام", opt_allDesignations:"تمام عہدے",
   th_caseNo:"کیس نمبر", th_caseType:"قسم", th_caseTitle:"عنوان", th_diaryNo:"ڈائری نمبر", th_filingDate:"دائر کرنے کی تاریخ", th_bench:"بینچ/عدالت",
   th_assignedEmployee:"تعینات ملازم", th_status:"صورتحال", th_nextDate:"اگلی پیشی کی تاریخ", th_lastResult:"تازہ ترین نتیجہ", th_actions:"کارروائی",
