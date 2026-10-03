@@ -4027,7 +4027,11 @@ function showLoginScreen(){ location.href = "../"; }
 function updateUserBar(){
   document.getElementById("currentUserLabel").textContent = CURRENT_USER? CURRENT_USER.username : "—";
   var roleEl = document.getElementById("currentUserRole");
-  roleEl.textContent = CURRENT_USER? (isAdmin()? t("usr_admin") : t("usr_guest")) : "";
+  /* (3 Oct 2026) Show "Super Admin" specifically instead of lumping it into the same
+     generic "Administrator" label as a plain admin -- this account's actual role
+     (roleV2) is tracked precisely via isSuperAdmin(), so the badge should say so too,
+     instead of looking different from one system to another for the same account. */
+  roleEl.textContent = CURRENT_USER? (isSuperAdmin()? t("usr_superAdmin") : (isAdmin()? t("usr_admin") : t("usr_guest"))) : "";
   roleEl.className = "role-badge" + (isAdmin()? " admin" : "");
   document.getElementById("usersNavBtn").style.display = isAdmin()? "flex" : "none";
   var fieldsMgrTabBtn = document.getElementById("fieldsMgrTabBtn");
@@ -4974,7 +4978,7 @@ en: {
   usr_role:"Role", usr_changePassword:"Change my password", usr_currentPassword:"Current password", usr_newPassword:"New password",
   usr_updatePassword:"Update password",
   usr_dataWarn:"Data is stored online in this system's shared Firebase database. Access is controlled by each person's role (Administrator vs Guest) — enforced both here and, more importantly, by the database's own security rules.",
-  usr_admin:"Administrator", usr_guest:"Guest", usr_you:"(you)", usr_setAsAdmin:"Set as Administrator", usr_setAsGuest:"Set as Guest",
+  usr_admin:"Administrator", usr_superAdmin:"Super Admin", usr_guest:"Guest", usr_you:"(you)", usr_setAsAdmin:"Set as Administrator", usr_setAsGuest:"Set as Guest",
   usr_adminOnly:"Only Administrators can see the user list.", usr_roleUpdated:"Role updated.", usr_roleUpdateFailed:"Could not update role:",
   usr_couldNotLoadUsers:"Could not load users:", usr_passwordUpdated:"Password updated.", usr_currentPasswordWrong:"Current password is incorrect.",
   usr_permAdminBranch:"Admin Branch", usr_permRecordBranch:"Record Branch", usr_permAccountsBranch:"Accounts Branch",
@@ -5195,7 +5199,7 @@ ur: {
   usr_role:"کردار", usr_changePassword:"اپنا پاسورڈ تبدیل کریں", usr_currentPassword:"موجودہ پاسورڈ", usr_newPassword:"نیا پاسورڈ",
   usr_updatePassword:"پاسورڈ اپڈیٹ کریں",
   usr_dataWarn:"Data اس سسٹم کے مشترکہ Firebase database میں آن لائن محفوظ ہوتا ہے۔ رسائی ہر شخص کے role (Administrator بمقابلہ Guest) کے مطابق کنٹرول ہوتی ہے — جو یہاں اور، زیادہ اہم طور پر، database کے اپنے سیکیورٹی رولز کے ذریعے نافذ ہوتی ہے۔",
-  usr_admin:"ایڈمنسٹریٹر", usr_guest:"مہمان (Guest)", usr_you:"(آپ)", usr_setAsAdmin:"ایڈمنسٹریٹر مقرر کریں", usr_setAsGuest:"Guest مقرر کریں",
+  usr_admin:"ایڈمنسٹریٹر", usr_superAdmin:"سپر ایڈمن", usr_guest:"مہمان (Guest)", usr_you:"(آپ)", usr_setAsAdmin:"ایڈمنسٹریٹر مقرر کریں", usr_setAsGuest:"Guest مقرر کریں",
   usr_adminOnly:"صرف Administrator ہی یوزر لسٹ دیکھ سکتا ہے۔", usr_roleUpdated:"کردار اپڈیٹ ہو گیا۔", usr_roleUpdateFailed:"کردار اپڈیٹ نہیں ہو سکا:",
   usr_couldNotLoadUsers:"یوزرز لوڈ نہیں ہو سکے:", usr_passwordUpdated:"پاسورڈ اپڈیٹ ہو گیا۔", usr_currentPasswordWrong:"موجودہ پاسورڈ درست نہیں ہے۔",
   usr_permAdminBranch:"ایڈمن برانچ", usr_permRecordBranch:"ریکارڈ برانچ", usr_permAccountsBranch:"اکاؤنٹس برانچ",
