@@ -724,7 +724,7 @@ html,body{overflow-x:hidden;}
 <div class="shell">
   <nav class="sidenav">
     <div class="navnote" data-i18n="nav_adminBranch">Admin Branch</div>
-    <button class="tab-btn active" data-tab="dashboard"><span class="dot"></span> <span data-i18n="nav_dashboard">Dashboard</span></button>
+    <button class="tab-btn active" data-tab="dashboard"><span class="dot"></span> <span data-i18n="nav_dashboard">Case Overview</span></button>
     <button class="tab-btn" data-tab="employees"><span class="dot"></span> <span data-i18n="nav_employees">Employees</span></button>
     <button class="tab-btn" data-tab="users" id="usersNavBtn" style="display:none;"><span class="dot"></span> <span data-i18n="nav_users">Users &amp; Access</span></button>
     <button class="tab-btn" data-tab="fieldsmgr" id="fieldsMgrTabBtn" style="display:none;"><span class="dot"></span> <span>Fields Manager (Super Admin)</span></button>
@@ -756,7 +756,7 @@ html,body{overflow-x:hidden;}
     <section class="panel active" id="panel-dashboard">
       <div class="panel-head">
         <div>
-          <h2 data-i18n="dash_title">Dashboard</h2>
+          <h2 data-i18n="dash_title">Case Overview</h2>
           <p data-i18n="dash_desc">A quick, live snapshot of every case in the system.</p>
         </div>
       </div>
@@ -1069,7 +1069,7 @@ html,body{overflow-x:hidden;}
       <div class="panel-head">
         <div>
           <h2>Fields Manager — Super Admin only</h2>
-          <p>اوپر رجسٹر منتخب کریں، پھر اس میں نئے فیلڈز (خانے) شامل کر سکتے ہیں، ان کا نام بدل سکتے ہیں، ڈراپ ڈاؤن آپشنز تبدیل کر سکتے ہیں، یا انہیں حذف کر سکتے ہیں۔ غلطی ہونے پر "پچھلی حالت پر واپس" بٹن سے فوراً واپس آ سکتے ہیں۔<br>Pick a register above, then add, rename, edit (dropdown options), or delete custom data-entry fields for it. Built-in fields cannot be removed here, since the whole system depends on them — only fields you add yourself through this page can be changed or deleted. Dashboard, Reports, Users &amp; Access and Backup/Restore don't have their own custom fields, since none of them has a record form to attach a value to.</p>
+          <p>اوپر رجسٹر منتخب کریں، پھر اس میں نئے فیلڈز (خانے) شامل کر سکتے ہیں، ان کا نام بدل سکتے ہیں، ڈراپ ڈاؤن آپشنز تبدیل کر سکتے ہیں، یا انہیں حذف کر سکتے ہیں۔ غلطی ہونے پر "پچھلی حالت پر واپس" بٹن سے فوراً واپس آ سکتے ہیں۔<br>Pick a register above, then add, rename, edit (dropdown options), or delete custom data-entry fields for it. Built-in fields cannot be removed here, since the whole system depends on them — only fields you add yourself through this page can be changed or deleted. Case Overview, Reports, Users &amp; Access and Backup/Restore don't have their own custom fields, since none of them has a record form to attach a value to.</p>
         </div>
       </div>
 
@@ -1530,7 +1530,7 @@ html,body{overflow-x:hidden;}
       </div>
 
       <div class="card">
-        <h3 data-i18n="help_dash_title">Dashboard</h3>
+        <h3 data-i18n="help_dash_title">Case Overview</h3>
         <p class="help-intro" data-i18n="help_dash_intro">A live overview of the whole system — everyone sees it on signing in.</p>
         <ol class="help-steps">
           <li data-i18n="help_dash_s1">The stat cards at the top summarise cases, hearings, and pending items across all branches.</li>
@@ -1555,7 +1555,7 @@ html,body{overflow-x:hidden;}
         <p class="help-intro" data-i18n="help_hear_intro">Every time a case is heard, add one entry here against that case — never overwrite an old one.</p>
         <ol class="help-steps">
           <li data-i18n="help_hear_s1">Pick the case first, then enter the hearing date, bench/court, and the proceedings/order for that date.</li>
-          <li data-i18n="help_hear_s2">Set the "Next Hearing Date" here too — this is what feeds the Dashboard's upcoming-hearings list.</li>
+          <li data-i18n="help_hear_s2">Set the "Next Hearing Date" here too — this is what feeds the Case Overview's upcoming-hearings list.</li>
           <li data-i18n="help_hear_s3">All past hearings for a case stay visible below in date order, so the full proceedings history is always at hand.</li>
         </ol>
       </div>
@@ -1651,7 +1651,7 @@ html,body{overflow-x:hidden;}
           <div class="faq-answer" data-i18n="help_faq6_a">Yes. Everyone signed in sees the same live data, and changes made by one person appear for everyone else within a moment.</div>
         </details>
         <details class="faq-item">
-          <summary data-i18n="help_faq7_q">How does the Dashboard know which hearings are "upcoming"?</summary>
+          <summary data-i18n="help_faq7_q">How does Case Overview know which hearings are "upcoming"?</summary>
           <div class="faq-answer" data-i18n="help_faq7_a">It reads the "Next Hearing Date" you set the last time you entered a hearing for each case, and lists anything falling in the next 7 days.</div>
         </details>
         <details class="faq-item">
@@ -4031,7 +4031,7 @@ function updateUserBar(){
    (d_printBtn — its own "detail" key). Unlike Case Notice, detail-mode does NOT hide the
    general masthead, so both flows can safely share the one #pbPrintExtraFields div. */
 var PANEL_LABELS = {
-  dashboard:"Dashboard", cases:"Cases", hearings:"Hearings", results:"Results",
+  dashboard:"Case Overview", cases:"Cases", hearings:"Hearings", results:"Results",
   employees:"Employees", dispatch:"Dak In/Out", tokens:"Token Register",
   reports:"Reports", users:"Users", help:"Help / Guide", fieldsmgr:"Fields Manager"
 };
@@ -4260,12 +4260,16 @@ document.getElementById("setup_password2").addEventListener("keydown", function(
 });
 
 document.getElementById("loginBtn").addEventListener("click", function(){
+  var btn = document.getElementById("loginBtn");
+  if(btn.disabled) return; /* guard against double-clicks while a sign-in is already in progress */
   var email = document.getElementById("login_username").value.trim();
   var pw = document.getElementById("login_password").value;
   var err = document.getElementById("loginError");
   err.textContent = "";
+  btn.disabled = true; btn.textContent = t("auth_signingIn"); /* visible feedback so the button never looks stuck/frozen */
   auth.signInWithEmailAndPassword(email, pw).catch(function(fbErr){
     err.textContent = t("auth_incorrectCredentials");
+    btn.disabled = false; btn.textContent = t("auth_signin");
   });
 });
 document.getElementById("login_password").addEventListener("keydown", function(ev){
@@ -4880,7 +4884,7 @@ en: {
   auth_createAccount:"Create an account", auth_newAccountsNote:"New accounts start as \"Guest\" (view-only). An existing Administrator must upgrade your role afterwards.",
   auth_yourEmail:"Your email", auth_password:"Password", auth_confirmPassword:"Confirm password", auth_createAccountBtn:"Create account",
   auth_backToSignin:"Back to sign in", auth_warnText:"Your data is stored online in this system's shared Firebase database. Only Administrators can add, edit, or delete records; Guests can view everything but cannot change it.",
-  auth_signin:"Sign in", auth_email:"Email", auth_createNewAccount:"Create a new account", auth_forgotPassword:"Forgot password?",
+  auth_signin:"Sign in", auth_signingIn:"Signing in…", auth_email:"Email", auth_createNewAccount:"Create a new account", auth_forgotPassword:"Forgot password?",
   auth_enterEmail:"Enter your email address.", auth_passwordTooShort:"Password should be at least 8 characters and include both letters and numbers.", auth_passwordsNoMatch:"Passwords do not match.",
   auth_incorrectCredentials:"Incorrect email or password.", auth_couldNotLoadAccount:"Could not load your account:",
   btn_printCurrent:"Print current view", lbl_signedInAs:"Signed in as", btn_logout:"Log out",
@@ -4889,9 +4893,9 @@ en: {
   backup_downloaded:"Backup file downloaded.", backup_restoreAdminOnly:"Only an Administrator can restore a backup (it replaces the shared online data for everyone).",
   backup_restoreConfirm:"Restoring will replace the shared online data for EVERYONE with this backup file. Continue?",
   backup_restored:"Data restored from backup.", backup_invalidFile:"This file could not be read as a valid backup.",
-  nav_modules:"Modules", nav_dashboard:"Dashboard", nav_cases:"Cases", nav_hearings:"Hearings", nav_results:"Results",
+  nav_modules:"Modules", nav_dashboard:"Case Overview", nav_cases:"Cases", nav_hearings:"Hearings", nav_results:"Results",
   nav_employees:"Employees", nav_reports:"Reports", nav_users:"Users & Access", nav_data:"Data",
-  dash_title:"Dashboard", dash_desc:"A quick, live snapshot of every case in the system.",
+  dash_title:"Case Overview", dash_desc:"A quick, live snapshot of every case in the system.",
   dash_upcomingHearings:"Upcoming hearings (next 7 days)", dash_recentHearings:"Recently entered hearings",
   dash_totalCases:"Total Cases", dash_noUpcoming:"No hearings due in the next 7 days.", dash_noRecent:"No hearings entered yet.",
   cases_panelTitle:"Cases — Main Register",
@@ -5014,7 +5018,7 @@ en: {
   nav_helpSection:"Help", nav_help:"Help / Guide",
   help_title:"Help & User Guide",
   help_introText:"This is one shared system for the whole office, divided into three branches — Admin Branch, Record Branch, and Accounts Branch. Everything you enter is saved online immediately and every other signed-in user sees the same information. An Administrator has full access everywhere; a Guest's access depends on which branch(es) their Administrator has granted them under \"Users & Access\" — a section without permission still shows for viewing and printing, its Add/Edit/Delete controls are just disabled.",
-  help_dash_title:"Dashboard",
+  help_dash_title:"Case Overview",
   help_dash_intro:"A live overview of the whole system — everyone sees it on signing in.",
   help_dash_s1:"The stat cards at the top summarise cases, hearings, and pending items across all branches.",
   help_dash_s2:"\"Upcoming hearings\" lists everything due in the next 7 days, so nothing is missed.",
@@ -5028,7 +5032,7 @@ en: {
   help_hear_title:"Hearings — Proceedings History (Record Branch)",
   help_hear_intro:"Every time a case is heard, add one entry here against that case — never overwrite an old one.",
   help_hear_s1:"Pick the case first, then enter the hearing date, bench/court, and the proceedings/order for that date.",
-  help_hear_s2:"Set the \"Next Hearing Date\" here too — this is what feeds the Dashboard's upcoming-hearings list.",
+  help_hear_s2:"Set the \"Next Hearing Date\" here too — this is what feeds the Case Overview's upcoming-hearings list.",
   help_hear_s3:"All past hearings for a case stay visible below in date order, so the full proceedings history is always at hand.",
   help_res_title:"Results — Final & Interim Orders (Record Branch)",
   help_res_intro:"Record the outcome of a case here — a final judgment or an interim order.",
@@ -5072,7 +5076,7 @@ en: {
   help_faq5_a:"Everything is stored online in this system's shared database, not on any one computer. If this computer is lost or damaged, the data is completely safe — just sign in again from any other computer.",
   help_faq6_q:"Can more than one person use the system at the same time?",
   help_faq6_a:"Yes. Everyone signed in sees the same live data, and changes made by one person appear for everyone else within a moment.",
-  help_faq7_q:"How does the Dashboard know which hearings are \"upcoming\"?",
+  help_faq7_q:"How does Case Overview know which hearings are \"upcoming\"?",
   help_faq7_a:"It reads the \"Next Hearing Date\" you set the last time you entered a hearing for each case, and lists anything falling in the next 7 days.",
   help_faq8_q:"A case has been decided — what should I update?",
   help_faq8_a:"Add the outcome in Results, then go back to that case in the Cases section and change its Status to Decided or Disposed so it drops off the pending lists.",
@@ -5100,7 +5104,7 @@ ur: {
   auth_yourEmail:"آپ کا ای میل", auth_password:"پاسورڈ", auth_confirmPassword:"پاسورڈ کی تصدیق", auth_createAccountBtn:"اکاؤنٹ بنائیں",
   auth_backToSignin:"سائن ان پر واپس جائیں",
   auth_warnText:"آپ کا Data اس سسٹم کے مشترکہ Firebase database میں آن لائن محفوظ ہوتا ہے۔ صرف Administrator ہی ریکارڈ شامل، ترمیم یا حذف کر سکتا ہے؛ Guest سب کچھ دیکھ سکتا ہے مگر تبدیل نہیں کر سکتا۔",
-  auth_signin:"سائن ان", auth_email:"ای میل", auth_createNewAccount:"نیا اکاؤنٹ بنائیں", auth_forgotPassword:"پاسورڈ بھول گئے؟",
+  auth_signin:"سائن ان", auth_signingIn:"سائن اِن ہو رہا ہے…", auth_email:"ای میل", auth_createNewAccount:"نیا اکاؤنٹ بنائیں", auth_forgotPassword:"پاسورڈ بھول گئے؟",
   auth_enterEmail:"اپنا ای میل ایڈریس درج کریں۔", auth_passwordTooShort:"پاسورڈ کم از کم 8 حروف کا ہونا چاہیے اور اس میں حروف اور نمبر دونوں شامل ہوں۔", auth_passwordsNoMatch:"پاسورڈز میچ نہیں کرتے۔",
   auth_incorrectCredentials:"ای میل یا پاسورڈ درست نہیں ہے۔", auth_couldNotLoadAccount:"آپ کا اکاؤنٹ لوڈ نہیں ہو سکا:",
   btn_printCurrent:"موجودہ صفحہ پرنٹ کریں", lbl_signedInAs:"سائن اِن ہیں بطور", btn_logout:"لاگ آؤٹ",
@@ -5110,9 +5114,9 @@ ur: {
   backup_restoreAdminOnly:"صرف Administrator ہی بیک اپ بحال کر سکتا ہے (یہ سب کے مشترکہ آن لائن Data کو تبدیل کر دیتا ہے)۔",
   backup_restoreConfirm:"بحالی کرنے سے یہ بیک اپ فائل سب کے مشترکہ آن لائن Data کی جگہ لے لے گی۔ جاری رکھیں؟",
   backup_restored:"Data بیک اپ سے بحال کر دیا گیا۔", backup_invalidFile:"یہ فائل درست بیک اپ کے طور پر نہیں پڑھی جا سکی۔",
-  nav_modules:"ماڈیولز", nav_dashboard:"ڈیش بورڈ", nav_cases:"کیسز", nav_hearings:"پیشیاں", nav_results:"نتائج",
+  nav_modules:"ماڈیولز", nav_dashboard:"کیسز کا خلاصہ", nav_cases:"کیسز", nav_hearings:"پیشیاں", nav_results:"نتائج",
   nav_employees:"ملازمین", nav_reports:"رپورٹس", nav_users:"یوزرز اینڈ ایکسیس", nav_data:"ڈیٹا",
-  dash_title:"ڈیش بورڈ", dash_desc:"سسٹم میں موجود ہر کیس کا فوری، لائیو جائزہ۔",
+  dash_title:"کیسز کا خلاصہ", dash_desc:"سسٹم میں موجود ہر کیس کا فوری، لائیو جائزہ۔",
   dash_upcomingHearings:"آئندہ پیشیاں (اگلے 7 دن)", dash_recentHearings:"حال ہی میں درج کی گئی پیشیاں",
   dash_totalCases:"کل کیسز", dash_noUpcoming:"اگلے 7 دنوں میں کوئی پیشی مقرر نہیں۔", dash_noRecent:"ابھی تک کوئی پیشی درج نہیں کی گئی۔",
   cases_panelTitle:"کیسز — مین رجسٹر",
@@ -5235,7 +5239,7 @@ ur: {
   nav_helpSection:"مدد", nav_help:"مدد / رہنمائی",
   help_title:"مدد اور صارف رہنما",
   help_introText:"یہ پورے دفتر کے لیے ایک مشترکہ سسٹم ہے، جو تین برانچز میں تقسیم ہے — ایڈمن برانچ، ریکارڈ برانچ، اور اکاؤنٹس برانچ۔ آپ جو کچھ بھی درج کرتے ہیں وہ فوراً آن لائن محفوظ ہو جاتا ہے اور ہر سائن اِن یوزر وہی معلومات دیکھتا ہے۔ ایڈمنسٹریٹر کو ہر جگہ مکمل رسائی حاصل ہوتی ہے؛ گیسٹ کی رسائی اس بات پر منحصر ہے کہ ان کے ایڈمنسٹریٹر نے \"یوزرز اینڈ ایکسیس\" میں انہیں کون سی برانچ(ز) دی ہیں — جس سیکشن کی اجازت نہ ہو وہ دیکھنے اور پرنٹ کے لیے تو نظر آتا ہے، بس اس کے شامل/ترمیم/حذف کے بٹن غیر فعال رہتے ہیں۔",
-  help_dash_title:"ڈیش بورڈ",
+  help_dash_title:"کیسز کا خلاصہ",
   help_dash_intro:"پورے سسٹم کا ایک لائیو جائزہ — ہر شخص سائن اِن ہوتے ہی اسے دیکھتا ہے۔",
   help_dash_s1:"اوپر موجود اسٹیٹ کارڈز تمام برانچز میں کیسز، پیشیوں، اور زیرِ التوا معاملات کا خلاصہ دکھاتے ہیں۔",
   help_dash_s2:"\"آئندہ پیشیاں\" اگلے 7 دنوں میں ہونے والی ہر پیشی کی فہرست دیتا ہے، تاکہ کچھ رہ نہ جائے۔",
@@ -5249,7 +5253,7 @@ ur: {
   help_hear_title:"پیشیاں — کارروائی کی تاریخ (ریکارڈ برانچ)",
   help_hear_intro:"جب بھی کسی کیس کی پیشی ہو، اس کیس کے خلاف یہاں ایک نیا اندراج شامل کریں — کبھی پرانا اندراج مٹا کر نہ لکھیں۔",
   help_hear_s1:"پہلے کیس منتخب کریں، پھر پیشی کی تاریخ، بینچ/عدالت، اور اس تاریخ کی کارروائی/حکم درج کریں۔",
-  help_hear_s2:"یہاں \"آئندہ پیشی کی تاریخ\" بھی سیٹ کریں — یہی ڈیش بورڈ کی آئندہ پیشیوں کی فہرست کو معلومات فراہم کرتا ہے۔",
+  help_hear_s2:"یہاں \"آئندہ پیشی کی تاریخ\" بھی سیٹ کریں — یہی \"کیسز کا خلاصہ\" کی آئندہ پیشیوں کی فہرست کو معلومات فراہم کرتا ہے۔",
   help_hear_s3:"کسی کیس کی تمام گزشتہ پیشیاں نیچے تاریخ کی ترتیب میں نظر آتی رہتی ہیں، تاکہ مکمل کارروائی کی تاریخ ہمیشہ دستیاب رہے۔",
   help_res_title:"نتائج — حتمی اور عبوری احکامات (ریکارڈ برانچ)",
   help_res_intro:"کیس کا نتیجہ یہاں درج کریں — چاہے وہ حتمی فیصلہ ہو یا عبوری حکم۔",
@@ -5293,7 +5297,7 @@ ur: {
   help_faq5_a:"ہر چیز اس سسٹم کے مشترکہ ڈیٹابیس میں آن لائن محفوظ ہے، کسی ایک کمپیوٹر پر نہیں۔ اگر یہ کمپیوٹر گم یا خراب ہو جائے، تو ڈیٹا مکمل طور پر محفوظ ہے — بس کسی اور کمپیوٹر سے دوبارہ سائن اِن کریں۔",
   help_faq6_q:"کیا ایک سے زیادہ افراد بیک وقت سسٹم استعمال کر سکتے ہیں؟",
   help_faq6_a:"جی ہاں۔ سائن اِن ہر شخص وہی لائیو ڈیٹا دیکھتا ہے، اور ایک شخص کی کی گئی تبدیلی چند لمحوں میں سب کو نظر آ جاتی ہے۔",
-  help_faq7_q:"ڈیش بورڈ کو کیسے پتہ چلتا ہے کہ کون سی پیشیاں \"آئندہ\" ہیں؟",
+  help_faq7_q:"\"کیسز کا خلاصہ\" کو کیسے پتہ چلتا ہے کہ کون سی پیشیاں \"آئندہ\" ہیں؟",
   help_faq7_a:"یہ ہر کیس کے لیے آپ کی آخری بار درج کردہ \"آئندہ پیشی کی تاریخ\" پڑھتا ہے، اور اگلے 7 دنوں میں آنے والی ہر چیز کی فہرست دیتا ہے۔",
   help_faq8_q:"کسی کیس کا فیصلہ ہو گیا ہے — مجھے کیا اپڈیٹ کرنا چاہیے؟",
   help_faq8_a:"نتائج میں نتیجہ شامل کریں، پھر کیسز سیکشن میں اس کیس پر جا کر اس کی صورتحال کو Decided یا Disposed میں تبدیل کریں تاکہ وہ زیرِ التوا فہرستوں سے ہٹ جائے۔",
