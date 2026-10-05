@@ -2110,7 +2110,7 @@ function saveData(deletedIds){
   SUPPRESS_NEXT_SNAPSHOT_RENDER = true;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(function(){
-    var localSnapshot = STATE;
+    var localSnapshot = stripPortalCases(STATE);
     var toDelete = pendingDeletedIds;
     pendingDeletedIds = {};
     db.runTransaction(function(tx){
@@ -2127,6 +2127,7 @@ function saveData(deletedIds){
       });
     }).then(function(merged){
       STATE = merged;
+      mergePortalIntoState();
       if(document.getElementById("appMain").style.display !== "none") renderAll();
     }).catch(function(err){
       SUPPRESS_NEXT_SNAPSHOT_RENDER = false;
@@ -2141,16 +2142,89 @@ function forceOverwriteData(){
   SUPPRESS_NEXT_SNAPSHOT_RENDER = true;
   clearTimeout(saveTimer);
   pendingDeletedIds = {};
-  SHARED_DOC_REF.set(STATE).then(function(){
+  SHARED_DOC_REF.set(stripPortalCases(STATE)).then(function(){
     if(document.getElementById("appMain").style.display !== "none") renderAll();
   }).catch(function(err){
     SUPPRESS_NEXT_SNAPSHOT_RENDER = false;
     toast("Could not save to the online database: "+err.message);
   });
 }
+/* ================= PORTAL CASES (Daily Case Entry) =================
+   Daily Case Entry in the Camp Office portal is the single place where cases are entered
+   (collection "cases", one document per hearing). Here those entries are shown in the
+   Cases list as read-only rows, grouped so that one case = one row, so Hearings, Results,
+   Reports and the Dashboard all see the very same cases. They are NEVER written into this
+   system's own saved data (see stripPortalCases) -- the portal stays the only source. */
+var PORTAL_RAW = [];
+var unsubscribePortalCases = null;
+function stripPortalCases(state){
+  var copy = {};
+  Object.keys(state).forEach(function(k){ copy[k] = state[k]; });
+  copy.cases = (state.cases||[]).filter(function(c){ return !(c && c._portal); });
+  return copy;
+}
+function buildPortalCases(own){
+  var groups = {};
+  var order = [];
+  PORTAL_RAW.forEach(function(d){
+    var no = String(d.caseNo==null? "" : d.caseNo).replace(/\s+/g,"").toUpperCase();
+    if(!no) return;
+    var key = [d.type||"", no, d.year||""].join("|");
+    if(!groups[key]){ groups[key] = []; order.push(key); }
+    groups[key].push(d);
+  });
+  var ownNos = {};
+  (own||[]).forEach(function(c){ ownNos[String(c.caseNo||"").replace(/\s+/g,"").toLowerCase()] = true; });
+  var out = [];
+  order.forEach(function(key){
+    var list = groups[key].slice().sort(function(a,b){ return String(a.date||"").localeCompare(String(b.date||"")); });
+    var first = list[0], last = list[list.length-1];
+    var no = String(first.caseNo).replace(/\s+/g,"").toUpperCase();
+    var label = no + (first.year? "/"+first.year : "");
+    if(ownNos[label.toLowerCase()] || ownNos[no.toLowerCase()]) return;
+    var title = last.title || first.title || "";
+    if(last.versus && last.versus!=="\u2014") title += " vs " + last.versus;
+    out.push({
+      id: "pc_" + key.replace(/[^A-Za-z0-9]+/g,"_"),
+      _portal: true,
+      caseNo: label,
+      caseType: first.type || "",
+      caseTitle: title,
+      diaryNo: "",
+      filingDate: first.date || "",
+      benchCourt: last.bench || "",
+      assignedEmployee: last.officer || "",
+      status: "Pending",
+      remarks: (last.remarks && last.remarks!=="\u2014")? last.remarks : "",
+      customData: {},
+      createdBy: "",
+      createdOn: (first.date||"") + "T00:00:00",
+      lastEditedBy: "", lastEditedAt: ""
+    });
+  });
+  return out;
+}
+function mergePortalIntoState(){
+  try{
+    var own = (STATE.cases||[]).filter(function(c){ return !(c && c._portal); });
+    STATE.cases = own.concat(buildPortalCases(own));
+  }catch(e){ console.error("portal cases merge", e); }
+}
+function startPortalCasesSync(){
+  if(unsubscribePortalCases) unsubscribePortalCases();
+  unsubscribePortalCases = db.collection("cases").onSnapshot(function(qs){
+    PORTAL_RAW = [];
+    qs.forEach(function(doc){ var d = doc.data()||{}; d.id = doc.id; PORTAL_RAW.push(d); });
+    mergePortalIntoState();
+    if(document.getElementById("appMain").style.display !== "none") renderAll();
+  }, function(err){ /* no permission to read portal cases: keep showing own cases only */ });
+}
+function portalCaseNotice(){ toast("\u06cc\u06c1 \u06a9\u06cc\u0633 \u067e\u0648\u0631\u0679\u0644 \u06a9\u06d2 Daily Case Entry \u0633\u06d2 \u0622\u06cc\u0627 \u06c1\u06d2\u060c \u0648\u06c1\u06cc\u06ba \u0633\u06d2 \u062a\u0631\u0645\u06cc\u0645/\u0688\u06cc\u0644\u06cc\u0679 \u06a9\u0631\u06cc\u06ba / This case comes from Daily Case Entry in the portal - edit it there."); }
+
 function fetchStateFromFirestore(callback){
   SHARED_DOC_REF.get().then(function(snap){
     STATE = normalizeData(snap.exists? snap.data() : {});
+    mergePortalIntoState();
     callback();
   }).catch(function(err){ toast("Could not load data from the online database: "+err.message); });
 }
@@ -2161,6 +2235,7 @@ function startRealtimeSync(){
     if(SUPPRESS_NEXT_SNAPSHOT_RENDER){ SUPPRESS_NEXT_SNAPSHOT_RENDER=false; return; }
     if(!snap.exists) return;
     STATE = normalizeData(snap.data());
+    mergePortalIntoState();
     if(document.getElementById("appMain").style.display !== "none") renderAll();
   });
 }
@@ -2446,6 +2521,7 @@ function resetCaseForm(){
 function editCase(id){
   var c = caseById(id);
   if(!c) return;
+  if(c._portal){ portalCaseNotice(); return; }
   caseEditId = id;
   document.getElementById("cs_caseNo").value = c.caseNo||"";
   document.getElementById("cs_caseType").value = c.caseType||"C.P.";
@@ -2470,6 +2546,7 @@ function deleteCase(id){
   if(!canEdit("recordBranch")){ toast(t("perm_noAccess")); return; }
   var c = caseById(id);
   if(!c) return;
+  if(c._portal){ portalCaseNotice(); return; }
   if(!isRecordOwner(c.createdBy)){ toast(t("perm_notOwner")); return; }
   var hearingCount = STATE.hearings.filter(function(h){ return h.caseId===id; }).length;
   var resultCount = STATE.results.filter(function(r){ return r.caseId===id; }).length;
@@ -2579,7 +2656,7 @@ function renderCases(){
     var nh = computeNextHearingDate(c.id);
     var lr = computeLatestResult(c.id);
     return "<tr>"+
-      "<td data-col='caseNo'>"+esc(c.caseNo)+"</td><td data-col='caseType'>"+esc(c.caseType)+"</td><td data-col='caseTitle'>"+esc(c.caseTitle)+"</td><td data-col='diaryNo'>"+esc(c.diaryNo)+"</td>"+
+      "<td data-col='caseNo'>"+esc(c.caseNo)+(c._portal? " <span class='tag' title='Daily Case Entry'>DCE</span>" : "")+"</td><td data-col='caseType'>"+esc(c.caseType)+"</td><td data-col='caseTitle'>"+esc(c.caseTitle)+"</td><td data-col='diaryNo'>"+esc(c.diaryNo)+"</td>"+
       "<td data-col='filingDate'>"+esc(c.filingDate)+"</td><td data-col='benchCourt'>"+esc(c.benchCourt)+"</td><td data-col='assignedEmployee'>"+esc(c.assignedEmployee)+"</td>"+
       "<td data-col='status'><span class='tag "+statusTagClass(c.status)+"'>"+esc(statusLabel(c.status))+"</span></td>"+
       "<td data-col='nextDate'>"+esc(nh)+"</td><td data-col='lastResult'>"+esc(lr? lr.resultCategory : "")+"</td>"+
@@ -4328,6 +4405,7 @@ auth.onAuthStateChanged(function(user){
           fetchStateFromFirestore(function(){
             showAppScreen();
             startRealtimeSync();
+            startPortalCasesSync();
             renderUsers();
             startChat();
           });
@@ -4345,6 +4423,8 @@ auth.onAuthStateChanged(function(user){
     spinClearVerified(CURRENT_USER && CURRENT_USER.uid);
     CURRENT_USER = null;
     if(unsubscribeSharedDoc){ unsubscribeSharedDoc(); unsubscribeSharedDoc = null; }
+    if(unsubscribePortalCases){ unsubscribePortalCases(); unsubscribePortalCases = null; }
+    PORTAL_RAW = [];
     if(unsubscribeUserDoc){ unsubscribeUserDoc(); unsubscribeUserDoc = null; }
     stopChat();
     showLoginScreen();
@@ -4824,7 +4904,7 @@ document.querySelectorAll(".tab-btn").forEach(function(btn){
 
 /* ================= BACKUP / RESTORE ================= */
 document.getElementById("btnBackup").addEventListener("click", function(){
-  var blob = new Blob([JSON.stringify(STATE, null, 2)], {type:"application/json"});
+  var blob = new Blob([JSON.stringify(stripPortalCases(STATE), null, 2)], {type:"application/json"});
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a");
   a.href = url; a.download = "daily_case_management_backup_"+todayStr()+".json";
@@ -4854,6 +4934,7 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
         tokens: incoming.tokens || []
       });
       forceOverwriteData();
+      mergePortalIntoState();
       renderAll();
       toast(t("backup_restored"));
     }catch(err){
