@@ -792,7 +792,16 @@ html,body{overflow-x:hidden;}
         <span class="count-chip" id="caseCount">0 cases</span>
       </div>
 
-      <div class="card entry-form">
+      <!-- The one and only case-entry form: the portal's Daily Case Entry page itself, opened here
+           (same login, same data). The old DCMS entry form below stays in the page but hidden. -->
+      <div class="card" id="dceEmbedCard" style="padding:0;overflow:hidden;">
+        <iframe id="dceFrame" title="Daily Case Entry" src="https://cmpofficepgp.org/camp-office-suite/case-entry.html?embed=1" loading="lazy" style="width:100%;height:900px;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div style="margin:8px 2px;font-size:12px;opacity:.75;">
+        <a href="https://cmpofficepgp.org/camp-office-suite/case-entry.html" target="_blank" rel="noopener">Open Daily Case Entry in its own page ↗</a>
+      </div>
+
+      <div class="card entry-form" id="legacyCaseForm" style="display:none;">
         <h3 id="caseFormTitle" data-i18n="cases_addCase">Add a case</h3>
         <div class="locked-hint" data-i18n="branch_lockedHint_record">You have view-only access to this section. Ask your Administrator to grant Record Branch permission to add, edit, or delete here.</div>
         <div class="grid cols-4">
@@ -838,7 +847,7 @@ html,body{overflow-x:hidden;}
         <div class="field-hint" id="cs_lastEditedHint"></div>
       </div>
 
-      <div class="search-bar">
+      <div class="search-bar" id="legacyCaseFilters" style="display:none;">
         <h3 data-i18n="cases_searchTitle">Search &amp; filter cases</h3>
         <div class="grid cols-4">
           <div class="field"><label data-i18n="lbl_caseNo">Case No</label><select id="csf_caseNo"><option value="" data-i18n="opt_allCaseNumbers">All case numbers</option></select></div>
@@ -859,6 +868,8 @@ html,body{overflow-x:hidden;}
         <div class="btnbar"><button class="btn ghost small" id="csf_clear" data-i18n="btn_clearFilters">Clear filters</button></div>
       </div>
 
+      <details class="card" style="padding:10px 14px;">
+        <summary style="cursor:pointer;font-weight:600;">Case list linked to Hearings &amp; Results (includes older DCMS records)</summary>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -869,6 +880,7 @@ html,body{overflow-x:hidden;}
           <tbody id="caseTableBody"></tbody>
         </table>
       </div>
+      </details>
     </section>
 
     <!-- ================= HEARINGS ================= -->
@@ -4944,6 +4956,24 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
   reader.readAsText(file);
   e.target.value = "";
 });
+
+/* Keep the embedded Daily Case Entry frame exactly as tall as its content (same origin, so
+   its document can be measured); any failure just leaves the default height with its own scroll. */
+(function(){
+  var f = document.getElementById("dceFrame");
+  if(!f) return;
+  function fit(){
+    try{
+      var d = f.contentDocument;
+      if(d && d.body){
+        var h = Math.max(500, d.body.offsetHeight + 24);
+        if(Math.abs(f.offsetHeight - h) > 8) f.style.height = h + "px";
+      }
+    }catch(e){}
+  }
+  f.addEventListener("load", fit);
+  setInterval(fit, 1200);
+})();
 
 /* ---------------- init ---------------- */
 function renderAll(){
